@@ -1,0 +1,32 @@
+{
+  "memory": {
+    "path": ".rhinodiet/memory.db",
+    "compact_after_nodes": 48
+  },
+  "compression": {
+    "input": "default",
+    "inter_agent": "caveman",
+    "user_visible": "tighten"
+  },
+  "review": {
+    "max_rounds": 2
+  },
+  "tiers": {
+    "supervisor": {
+      "model": "inherit",
+      "role": "delegate"
+    },
+    "worker": {
+      "model": "composer-2.5[fast=true]",
+      "role": "implement"
+    }
+  },
+  "agents": {
+    "supervisor": "supervisor",
+    "dev": "worker",
+    "reviewer": "worker",
+    "creative": "worker",
+    "release": "worker",
+    "docs": "worker"
+  }
+}

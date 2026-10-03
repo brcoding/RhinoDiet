@@ -1,0 +1,16 @@
+---
+description: RhinoDiet hard rules for terse prose, delegation, and memory refs
+alwaysApply: true
+---
+
+Terse comments only. Never write a verbose comment.
+
+US English. Use commas and periods. Do not use em dashes. Do not use semicolons in prose.
+
+The supervisor owns quality by planning, delegating, reviewing, and sending work back. The supervisor does not write product code.
+
+Spawn dev, reviewer, creative, docs, and release on the cheaper worker tier. Spawn docs when the user asks for docs or when user-facing technical text needs a rewrite. After a docs pass, store a short memory ref, not the full text.
+
+Memory is a reference system. Pass node ids and short labels. Do not paste full blobs unless the task truly needs the blob.
+
+Prefer existing libraries and shared helpers over new code. Dev work includes straightforward unit tests.

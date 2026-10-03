@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "rhinodiet": {
+      "command": "./hooks/mcp.sh"
+    }
+  }
+}

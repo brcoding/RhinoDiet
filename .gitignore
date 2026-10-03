@@ -1,0 +1,9 @@
+.rhinodiet/
+agent-tools/
+__pycache__/
+.pytest_cache/
+*.py[cod]
+.venv/
+dist/
+build/
+*.egg-info/
