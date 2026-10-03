@@ -141,6 +141,37 @@ Cursor cannot express the whole product inside the manifest:
 - `rhinodiet_remember` stores a short update and compacts when needed.
 - `rhinodiet_get` returns one node body when a task truly needs the blob.
 
+## Token comparison
+
+This comparison uses the Godot 4 Pac-Man clone in `benchmarks/godot-pacman`. The task stays the same across three turns. Without the plugin, each turn sends the prompt again with the spec and the file tree. With RhinoDiet, each turn calls prepare, compress, cite, and the supervisor. Inter-agent text uses caveman compression. Memory passes ids and short labels. Stored bodies stay in the graph. From the second turn the baseline also sends the review notes and earlier replies. The last turn also runs the docs rewriter on one technical passage.
+
+Headline counts use tiktoken `o200k_base`. Output tokens are harness fixtures, counted raw on the baseline and after caveman compression on the plugin path. The last turn counts the original technical passage on the baseline and the docs rewriter output on the plugin path. No live model call was made.
+
+| Condition | Input | Output | Total |
+| --- | --- | --- | --- |
+| Without plugin | 3890 | 354 | 4244 |
+| With RhinoDiet | 1855 | 287 | 2142 |
+| Saved | 2035 | 67 | 2102 (49.5%) |
+
+The later turn is the long-context case. Input on that turn is 1535 tokens without the plugin and 267 tokens with RhinoDiet, an 82.6 percent reduction. Without the plugin that turn resends the spec, the file tree, the review notes, and earlier replies. With RhinoDiet that turn cites stored node ids and short labels.
+
+The first turn still sends the spec. Caveman compression and the reviewer pass put that turn's input at 1126 tokens with the plugin and 1061 without it. Output is 67 tokens lower with the plugin on these harness fixtures and the docs rewrite.
+
+Compression kept the maze size (19 columns by 21 rows), the controls (arrow keys and WASD), the win rule (win when every pellet is eaten), the lose rule (lose when a ghost touches the player), and the file names (scripts/player.gd, scripts/ghost.gd, scripts/maze.gd, scripts/hud.gd, scripts/main.gd).
+
+The plugin counter, a local whitespace split, totals 4531 without the plugin and 2162 with it. The table uses tiktoken o200k_base. That count is the headline.
+
+Illustration only, from public list prices. At the OpenAI GPT-4o standard list price of $2.50 per 1M input tokens and $10 per 1M output tokens, published 2 Oct 2026, these counts come to $0.0133 without the plugin and $0.0075 with it. Per 1,000 runs the illustration is $13.30 versus $7.50. The configured worker model is composer-2.5 fast. This sketch uses the GPT-4o list, which is a different price.
+
+Godot 4.3 ran headless on benchmarks/godot-pacman. The main scene loaded, reported 201 pellets and 2 ghosts, and exited cleanly.
+
+Install the dev extra so tiktoken is available. Then rerun the count.
+
+```bash
+python -m pip install -e ".[dev]"
+python benchmarks/token_compare.py
+```
+
 ## License
 
 MIT

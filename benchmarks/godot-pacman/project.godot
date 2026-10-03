@@ -1,0 +1,19 @@
+; Godot 4 project. Draw calls use built-in nodes only.
+
+config_version=5
+
+[application]
+
+config/name="Pac-Man"
+run/main_scene="res://scenes/main.tscn"
+config/features=PackedStringArray("4.3", "GL Compatibility")
+
+[display]
+
+window/size/viewport_width=560
+window/size/viewport_height=660
+window/size/resizable=true
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
