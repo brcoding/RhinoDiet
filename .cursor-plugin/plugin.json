@@ -1,0 +1,9 @@
+{
+  "name": "rhinodiet",
+  "displayName": "RhinoDiet",
+  "description": "Cut token use. Compress prompts, delegate to cheaper models, and cite a local graph instead of pasting history.",
+  "version": "0.1.0",
+  "license": "MIT",
+  "keywords": ["tokens", "compression", "memory", "supervisor"],
+  "category": "productivity"
+}
