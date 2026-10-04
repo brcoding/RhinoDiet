@@ -1,6 +1,6 @@
 """Game tester assignment, focus, Pac-Man play, and history stills."""
 
-from rhinodiet.pacman_play import run_avoid, run_clear, run_restart
+from rhinodiet.pacman_play import PlayResult, World, attempt_passed, run_avoid, run_clear, run_restart
 from rhinodiet.supervisor import wants_dev, wants_godot, wants_tester
 from rhinodiet.tester import Area, GameSpec, TesterService, choose_area
 from rhinodiet.testhistory import compare_metrics, load_history, page_html, record_run
@@ -19,6 +19,7 @@ def test_focus_maps_phrases_to_areas():
     assert choose_area("avoid ghosts", areas).name == "avoid-ghosts"
     assert choose_area("restart", areas).name == "restart"
     assert choose_area("reach the end while avoiding ghosts", areas).name == "clear-board"
+    assert choose_area("beat the level", areas).name == "clear-board"
     clear = choose_area("avoid ghosts", areas)
     assert clear.name != "clear-board"
 
@@ -43,9 +44,44 @@ def test_supervisor_sends_game_tests_to_the_tester(tmp_path):
     assert "pac-man" not in text.lower()
 
 
+def test_four_second_survival_with_pellets_left_does_not_pass():
+    assert attempt_passed(183, 0, False, 4.0) is False
+    assert attempt_passed(0, 0, True, 4.0) is True
+
+
+def test_avoid_keeps_chasing_pellets_past_four_seconds():
+    seen = {}
+
+    def observe(world, ticks):
+        if ticks == 240:
+            seen["eaten"] = world.initial - len(world.pellets)
+            seen["left"] = len(world.pellets)
+            seen["over"] = world.over
+            seen["cell"] = world.player.cell
+
+    avoid = run_avoid(observe=observe)
+    assert avoid.time_survived > 4
+    assert seen["over"] is False
+    assert seen["eaten"] > 0
+    assert seen["left"] > 0
+    assert seen["cell"] != World().player_start
+    assert avoid.pellets_eaten > seen["eaten"]
+    assert attempt_passed(seen["left"], 0, False, 4.0) is False
+    assert avoid.passed
+    assert avoid.board_cleared
+    assert avoid.pellets_eaten == 201
+    assert avoid.ghosts_hit == 0
+    assert len(avoid.frames) >= 4
+    assert avoid.frames[0].startswith(b"\x89PNG")
+    assert avoid.frames[0] != avoid.frames[-1]
+
+
 def test_pacman_driver_meets_each_goal():
     avoid = run_avoid()
     assert avoid.passed
+    assert avoid.time_survived > 4
+    assert avoid.board_cleared
+    assert avoid.pellets_eaten == 201
     assert avoid.ghosts_hit == 0
     assert avoid.frames and avoid.frames[0].startswith(b"\x89PNG")
     restart = run_restart()
@@ -97,13 +133,17 @@ def test_focus_records_a_still_and_compares_with_the_previous_run(tmp_path):
     history = load_history(tmp_path)
     run = history["runs"][-1]
     assert run["images"]
+    assert len(run["images"]) >= 4
+    assert run["metrics"]["time_survived"] > 4
+    assert run["metrics"]["pellets_eaten"] == 201
+    assert run["metrics"]["board_cleared"] is True
     still = tmp_path / ".rhinodiet" / "tests" / run["id"] / run["images"][0]
     assert still.read_bytes().startswith(b"\x89PNG")
     second_metrics = dict(run["metrics"])
     second_metrics["pellets_eaten"] = run["metrics"]["pellets_eaten"] + 3
     second_metrics["time_survived"] = run["metrics"]["time_survived"] + 1
     second_metrics["ghosts_hit"] = 1
-    second_metrics["board_cleared"] = True
+    second_metrics["board_cleared"] = False
     entry = record_run(
         tmp_path,
         mode="focus",
@@ -117,7 +157,7 @@ def test_focus_records_a_still_and_compares_with_the_previous_run(tmp_path):
     assert "Pellets eaten" in text and "up" in text
     assert "Time survived" in text
     assert "Ghosts hit 1 versus 0, up 1." in text
-    assert "Board cleared yes versus no." in text
+    assert "Board cleared no versus yes." in text
     assert compare_metrics(second_metrics, run["metrics"]) == text
     assert "No test runs yet" in page_html()
 
@@ -147,3 +187,42 @@ def test_a_new_game_registers_areas_the_same_way(tmp_path):
     report = service.run("test the game", tmp_path)
     assert report.passed is False
     assert "no play driver" in report.text
+
+
+def test_a_death_is_recorded_and_the_loop_tries_again(tmp_path):
+    _supervisor, graph = boot(tmp_path)
+    marker = tmp_path / "bench" / "game.marker"
+    marker.parent.mkdir(parents=True)
+    marker.write_text("marker", encoding="utf-8")
+    calls = []
+
+    def play(name):
+        calls.append(name)
+        eaten = 25 * len(calls)
+        return PlayResult(
+            False,
+            f"A ghost caught Pac-Man after {eaten} pellets and 12.0 seconds.",
+            eaten,
+            12.0,
+            1,
+            False,
+            [b"\x89PNG"],
+        )
+
+    game = GameSpec(
+        name="maze",
+        marker="bench/game.marker",
+        endurance="clear-board",
+        play=play,
+        areas=(Area("clear-board", "Beat the level.", "Board clear.", "Pellets remain."),),
+    )
+    service = TesterService(graph, games=(game,))
+    report = service.run("test the game", tmp_path, loops=2)
+    assert calls == ["clear-board", "clear-board"]
+    assert report.passed is False
+    history = load_history(tmp_path)
+    assert [item["metrics"]["pellets_eaten"] for item in history["runs"]] == [25, 50]
+    assert [item["metrics"]["time_survived"] for item in history["runs"]] == [12.0, 12.0]
+    assert all(item["metrics"]["ghosts_hit"] == 1 for item in history["runs"])
+    assert all(item["metrics"]["board_cleared"] is False for item in history["runs"])
+    assert all(item["passed"] is False for item in history["runs"])

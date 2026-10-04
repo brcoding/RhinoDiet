@@ -11,9 +11,11 @@ from pathlib import Path
 LEFT, RIGHT, UP, DOWN = (-1, 0), (1, 0), (0, -1), (0, 1)
 DIRS = (LEFT, RIGHT, UP, DOWN)
 DT = 1 / 60
-AVOID_TICKS = 240
 RESTART_PLAY_TICKS = 180
+# Safety cap only. Stop earlier when the board is clear or a ghost hits.
 CLEAR_TICKS = 40000
+STILL_EVERY = 150
+STILL_LIMIT = 8
 _MAZE = Path(__file__).resolve().parents[2] / "benchmarks" / "godot-pacman" / "scripts" / "maze.gd"
 
 
@@ -451,28 +453,83 @@ def _finish(frames: list[bytes], world: World) -> None:
         frames.append(render_png(world))
 
 
-def run_avoid() -> PlayResult:
+def attempt_passed(
+    pellets_left: int,
+    ghosts_hit: int,
+    board_cleared: bool,
+    time_survived: float = 0.0,
+) -> bool:
+    # Time alive does not clear leftover pellets.
+    _ = time_survived
+    return bool(board_cleared) and ghosts_hit == 0 and pellets_left == 0
+
+
+def _spread(items: list, limit: int = STILL_LIMIT) -> list:
+    if len(items) <= limit:
+        return items
+    if limit <= 1:
+        return [items[-1]]
+    picked = []
+    last = -1
+    span = len(items) - 1
+    for index in range(limit):
+        choice = round(index * span / (limit - 1))
+        if choice == last:
+            continue
+        picked.append(items[choice])
+        last = choice
+    return picked
+
+
+def _outcome(world: World, ticks: int) -> tuple[bool, str, int]:
+    eaten = world.initial - len(world.pellets)
+    left = len(world.pellets)
+    seconds = _seconds(ticks)
+    passed = attempt_passed(left, world.hits, world.won, seconds)
+    if passed:
+        text = f"Cleared the board in {seconds} seconds without a ghost hit."
+    elif world.hit:
+        text = f"A ghost caught Pac-Man after {eaten} pellets and {seconds} seconds."
+    else:
+        text = f"Stopped after {seconds} seconds with {left} pellets left."
+    return passed, text, eaten
+
+
+def drive_until(max_ticks: int = CLEAR_TICKS, observe=None) -> PlayResult:
     world = World()
-    frames: list[bytes] = []
+    shots: list[World] = []
     queued = LEFT
+    follow: list[tuple[int, int]] = []
     ticks = 0
-    for tick in range(AVOID_TICKS):
-        if world.player.progress >= 1.0:
-            queued = safe_choose(world)
-        _snap(frames, world, tick, 80)
-        world.tick(queued)
-        ticks = tick + 1
+    for tick in range(max_ticks):
         if world.over:
             break
-    _finish(frames, world)
-    passed = not world.hit
-    eaten = world.initial - len(world.pellets)
-    result = (
-        f"Avoided ghosts for {_seconds(ticks)} seconds."
-        if passed
-        else "A ghost caught Pac-Man."
-    )
-    return PlayResult(passed, result, eaten, _seconds(ticks), world.hits, world.won, frames)
+        if world.player.progress >= 1.0:
+            if follow:
+                queued = follow.pop(0)
+            else:
+                trip = find_trip(world) if len(world.pellets) <= 45 else None
+                if trip:
+                    queued = trip[0]
+                    follow = trip[1:]
+                else:
+                    queued = safe_choose(world)
+        if tick % STILL_EVERY == 0:
+            shots.append(world.clone())
+        world.tick(queued)
+        ticks = tick + 1
+        if observe is not None:
+            observe(world, ticks)
+        if world.over:
+            break
+    shots.append(world.clone())
+    frames = [render_png(shot) for shot in _spread(shots)]
+    passed, text, eaten = _outcome(world, ticks)
+    return PlayResult(passed, text, eaten, _seconds(ticks), world.hits, world.won, frames)
+
+
+def run_avoid(observe=None) -> PlayResult:
+    return drive_until(observe=observe)
 
 
 def run_restart() -> PlayResult:
@@ -533,37 +590,7 @@ def run_restart() -> PlayResult:
 
 
 def run_clear(max_ticks: int = CLEAR_TICKS) -> PlayResult:
-    world = World()
-    frames: list[bytes] = []
-    queued = LEFT
-    follow: list[tuple[int, int]] = []
-    ticks = 0
-    for tick in range(max_ticks):
-        if world.player.progress >= 1.0:
-            if follow:
-                queued = follow.pop(0)
-            else:
-                trip = find_trip(world) if len(world.pellets) <= 45 else None
-                if trip:
-                    queued = trip[0]
-                    follow = trip[1:]
-                else:
-                    queued = safe_choose(world)
-        _snap(frames, world, tick, 3000)
-        world.tick(queued)
-        ticks = tick + 1
-        if world.over:
-            break
-    _finish(frames, world)
-    passed = world.won and world.hits == 0
-    eaten = world.initial - len(world.pellets)
-    if passed:
-        result = f"Cleared the board in {_seconds(ticks)} seconds without a ghost hit."
-    elif world.hit:
-        result = "A ghost hit before the board was clear."
-    else:
-        result = "Pellets were still on the board when the run stopped."
-    return PlayResult(passed, result, eaten, _seconds(ticks), world.hits, world.won, frames)
+    return drive_until(max_ticks=max_ticks)
 
 
 def play_area(name: str) -> PlayResult:

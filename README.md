@@ -167,21 +167,23 @@ Cursor cannot express the whole product inside the manifest:
 
 ## Game tests
 
-Two modes use the same tester path. `rhinodiet test` is endurance. It replays the game until the clear goal, twice by default, so a run can finish. `rhinodiet test --loops 4` or a request that asks for a longer run plays more loops. `rhinodiet test --focus "avoid ghosts"` plays one area and ignores the rest.
+Two modes use the same tester path. `rhinodiet test` is endurance. It plays to clear the board, twice by default, so a run can finish. `rhinodiet test --loops 4` or a request that asks for a longer run raises the cap. `rhinodiet test --focus "avoid ghosts"` plays one area and ignores the rest.
 
-Focus maps the phrase to a stored area. The score prefers an exact goal or name, then a phrase contained in the shorter goal. "avoid ghosts" selects `avoid-ghosts`. "restart" selects `restart`. "reach the end while avoiding ghosts" selects `clear-board`.
+Focus maps the phrase to a stored area. The score prefers an exact goal, name, or alias, then a phrase contained in the shorter goal. "avoid ghosts" selects `avoid-ghosts`. "restart" selects `restart`. "reach the end while avoiding ghosts" and "beat the level" select `clear-board`.
+
+The default run and "beat the level" mean clear the board. The driver reads the player, the ghosts, and the pellets. It eats pellets and flees ghosts until the board is clear, a ghost hits, or the safety cap. It does not stop on a 4 second timer. Four seconds alive with pellets left is a fail. A death records how far that attempt got. The endurance loop then tries again until the loop cap. Avoid ghosts uses the same chase. It passes only when the board is clear and no ghost caught Pac-Man. Restart is the only area that does not try to clear the board.
 
 Pac-Man in `benchmarks/godot-pacman` is the built-in example. The headless driver simulates input. It does not rebuild the export on port 8741. Areas:
 
 | Area | Goal | Pass | Fail |
 | --- | --- | --- | --- |
-| avoid-ghosts | Avoid ghosts. | No shared cell with a ghost. | A ghost catches Pac-Man. |
+| avoid-ghosts | Avoid ghosts. | Board clear and no ghost hit. | Pellets remain or a ghost catches Pac-Man. |
 | restart | Restart. | R restores pellets and the start cell. | The board stays ended. |
 | clear-board | Reach the end while avoiding ghosts. | No pellets left and no ghost hit. | A hit or pellets remain. |
 
 A game with no areas yet gets short refs from the tester: name, goal, and how to tell pass from fail. Later runs cite those ids. New games register areas the same way. The supervisor does not special-case Pac-Man.
 
-Each run records the time, the mode (`loop` or `focus`), the area name, pass or fail, a short result, and stills. For Pac-Man the page also compares pellets eaten, time survived, ghosts hit, and whether the board was cleared with the previous run of that area. You can pick an earlier run of the same area on the page.
+Each run records the time, the mode (`loop` or `focus`), the area name, pass or fail, a short result, and stills spread across the attempt. For Pac-Man the page also compares pellets eaten, time survived, ghosts hit, and whether the board was cleared with the previous run of that area. You can pick an earlier run of the same area on the page.
 
 Godot still owns scenes and the export pipeline. The tester drives play. Release still serves, commits, and opens pull requests.
 

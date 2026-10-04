@@ -18,7 +18,7 @@ Flow:
 6. Spawn creative only when prepare assigns creative.
 7. Spawn docs when prepare assigns docs. That is when the user asks for docs, or when user-facing technical text needs a rewrite. After the docs pass, store a short memory ref, not the full text.
 8. Spawn release only when prepare assigns release. Dev-test, publish, and token records stay inside scripts/release.sh. Godot prepares the export preset and the headless boot. Release still serves and starts cloudflared when it is on PATH.
-9. Spawn the tester when prepare assigns tester. That is "test the game" or "test this area". The tester plays. It does not edit scenes, serve, or open a pull request. Godot still owns scenes and the export pipeline.
+9. Spawn the tester when prepare assigns tester. That is "test the game" or "test this area". The tester plays to clear the board. A few seconds alive with pellets left is a fail. It does not edit scenes, serve, or open a pull request. Godot still owns scenes and the export pipeline.
 10. Call rhinodiet_remember with a short summary and the cite ids.
 11. Call rhinodiet_compact when prepare says the graph is over the threshold.
 

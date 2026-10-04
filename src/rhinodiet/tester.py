@@ -28,6 +28,7 @@ class Area:
     goal: str
     passed: str
     failed: str
+    aliases: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -52,8 +53,8 @@ PACMAN_AREAS = (
     Area(
         "avoid-ghosts",
         "Avoid ghosts.",
-        "No shared cell with a ghost.",
-        "A ghost catches Pac-Man.",
+        "Board clear and no ghost hit.",
+        "Pellets remain or a ghost catches Pac-Man.",
     ),
     Area(
         "restart",
@@ -66,6 +67,7 @@ PACMAN_AREAS = (
         "Reach the end while avoiding ghosts.",
         "No pellets left and no ghost hit.",
         "A hit or pellets remain.",
+        ("beat the level",),
     ),
 )
 
@@ -104,9 +106,10 @@ def score_area(phrase: str, area: Area) -> float:
     text = _flat(phrase)
     goal = _flat(area.goal)
     name = area.name.replace("-", " ")
+    aliases = tuple(_flat(item) for item in area.aliases)
     if not text:
         return 0
-    if text == goal or text == name:
+    if text == goal or text == name or text in aliases:
         return 1000 - len(goal)
     if text in goal:
         return 500 - len(goal)

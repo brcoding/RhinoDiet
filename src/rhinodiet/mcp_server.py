@@ -82,7 +82,7 @@ TOOLS = [
     },
     {
         "name": "rhinodiet_test",
-        "description": "Play a registered game in a loop, or focus one area. Records stills and a short result.",
+        "description": "Play until the board is clear, or focus one area. A short survival with pellets left fails. Records stills and a short result.",
         "inputSchema": {
             "type": "object",
             "properties": {
