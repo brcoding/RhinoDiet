@@ -81,6 +81,18 @@ TOOLS = [
         },
     },
     {
+        "name": "rhinodiet_test",
+        "description": "Play a registered game in a loop, or focus one area. Records stills and a short result.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "request": {"type": "string"},
+                "focus": {"type": "string"},
+                "loops": {"type": "integer"},
+            },
+        },
+    },
+    {
         "name": "rhinodiet_release",
         "description": "Write scripts/release.sh. Dev-test, publish, and token records stay in that script.",
         "inputSchema": {
@@ -203,6 +215,22 @@ def _call_tool(name: str, args: dict) -> str:
     if name == "rhinodiet_godot":
         note, _accepted = supervisor._run_godot(str(args.get("request") or ""), [], [])
         return json.dumps({"summary": note})
+    if name == "rhinodiet_test":
+        report = supervisor.tester.run(
+            str(args.get("request") or "test the game"),
+            supervisor.project_root,
+            focus=str(args.get("focus") or ""),
+            loops=int(args.get("loops") or 0),
+        )
+        return json.dumps(
+            {
+                "passed": report.passed,
+                "text": report.text,
+                "area": report.area,
+                "mode": report.mode,
+                "cite_ids": report.cite_ids,
+            }
+        )
     if name == "rhinodiet_release":
         result = supervisor.release.run(str(args.get("request") or ""), supervisor.project_root)
         return json.dumps({"script": str(result.script), "summary": result.summary})

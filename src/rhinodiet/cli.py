@@ -10,6 +10,7 @@ from rhinodiet.compress import compress
 from rhinodiet.docs import DocsWriter
 from rhinodiet.graph import format_cites
 from rhinodiet.supervisor import open_supervisor
+from rhinodiet.testhistory import PAGE_PORT, serve
 from rhinodiet.tokens import format_report, record_transcript
 
 
@@ -32,6 +33,12 @@ def main(argv: list[str] | None = None) -> int:
     docs = sub.add_parser("docs", help="Rewrite technical text and store a short ref")
     docs.add_argument("text")
 
+    test = sub.add_parser("test", help="Play the registered game, or serve test history")
+    test.add_argument("--focus", default="", help="Play one area, for example avoid ghosts")
+    test.add_argument("--loops", type=int, default=0, help="Endurance loops. Default is 2.")
+    test.add_argument("--serve", action="store_true", help="Serve the local test history page")
+    test.add_argument("--port", type=int, default=PAGE_PORT)
+
     tokens = sub.add_parser("tokens", help="Record reconstructed transcript totals")
     tokens_sub = tokens.add_subparsers(dest="tokens_cmd", required=True)
     record = tokens_sub.add_parser("record", help="Count a transcript and write the totals")
@@ -39,6 +46,11 @@ def main(argv: list[str] | None = None) -> int:
     record.add_argument("--out")
 
     args = parser.parse_args(argv)
+    if args.cmd == "test" and args.serve:
+        from rhinodiet.config import project_dir
+
+        serve(project_dir(), args.port)
+        return 0
     if args.cmd == "tokens":
         dest = Path(args.out) if args.out else None
         print(format_report(record_transcript(Path(args.transcript), dest)))
@@ -59,6 +71,21 @@ def main(argv: list[str] | None = None) -> int:
         report = supervisor.graph.compact(supervisor.config.compact_after_nodes)
         print(f"Compact {report.before} to {report.after}.")
         return 0
+    if args.cmd == "test":
+        phrase = args.focus.strip()
+        request = f"focus on {phrase}" if phrase else "test the game"
+        if args.loops:
+            request = f"{request} for {args.loops} loops"
+        report = supervisor.tester.run(
+            request,
+            supervisor.project_root,
+            focus=phrase,
+            loops=args.loops,
+        )
+        print(report.text)
+        if report.cite_ids:
+            print("Cited " + ", ".join(report.cite_ids) + ".")
+        return 0 if report.passed else 1
     if args.cmd == "docs":
         result = DocsWriter().run(args.text)
         node = supervisor.graph.add_node(

@@ -16,6 +16,7 @@ from rhinodiet.docs import DocsResult, DocsWriter
 from rhinodiet.godot import GodotService
 from rhinodiet.graph import Citation, GraphStore, format_cites
 from rhinodiet.release import ReleaseWriter
+from rhinodiet.tester import TesterService
 
 DEV_SYSTEM = (
     "You are the dev worker. Return JSON only with keys summary, code_changed, files, tests. "
@@ -39,6 +40,10 @@ _GODOT = re.compile(
 
 _DEV = re.compile(
     r"\b(add|implement|fix|build|create|update|refactor|bug|test|function|code|feature|parser)\b",
+    re.I,
+)
+_TESTER = re.compile(
+    r"\btest the game\b|\btest this area\b|\bfocused test\b|\breplay the game\b|\bplay until the end\b|\bfocus on\b",
     re.I,
 )
 _REVIEW = re.compile(r"\b(review|audit)\b", re.I)
@@ -155,7 +160,9 @@ def plan(request: str) -> list[str]:
     docs = wants_docs(text)
     if _CREATIVE.search(text):
         tasks.append("creative")
-    if wants_godot(text):
+    if wants_tester(text):
+        tasks.append("tester")
+    elif wants_godot(text):
         tasks.append("godot")
     elif wants_dev(text):
         tasks.append("dev")
@@ -174,6 +181,10 @@ def wants_docs(text: str) -> bool:
     if len(text.split()) < 40:
         return False
     return bool(_PASSIVE_BY.search(text) and _TECH.search(text))
+
+
+def wants_tester(text: str) -> bool:
+    return bool(_TESTER.search(text))
 
 
 def wants_godot(text: str) -> bool:
@@ -239,6 +250,7 @@ class Supervisor:
         docs: DocsWriter | None = None,
         release: ReleaseWriter | None = None,
         godot: GodotService | None = None,
+        tester: TesterService | None = None,
     ):
         self.graph = graph
         self.config = config
@@ -248,6 +260,7 @@ class Supervisor:
         self.docs = docs or DocsWriter()
         self.release = release or ReleaseWriter()
         self.godot = godot or GodotService(graph)
+        self.tester = tester or TesterService(graph)
         self._pending_art = ""
 
     def prepare(self, request: str) -> dict:
@@ -307,6 +320,11 @@ class Supervisor:
                 result = self.release.run(request, self.project_root, apply=False)
                 notes.append(result.summary)
                 trace.append("release")
+            elif agent == "tester":
+                outcome = self.tester.run(request, self.project_root)
+                notes.append(outcome.text)
+                trace.append("tester")
+                accepted = accepted and outcome.passed
         memory_id = ""
         if trace:
             memory_id = self._remember(trace, cites, docs_result, notes)

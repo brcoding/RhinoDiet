@@ -28,6 +28,7 @@
     "creative": "worker",
     "godot": "worker",
     "release": "worker",
-    "docs": "worker"
+    "docs": "worker",
+    "tester": "worker"
   }
 }

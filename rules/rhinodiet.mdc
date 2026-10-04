@@ -9,7 +9,7 @@ US English. Use commas and periods. Do not use em dashes. Do not use semicolons 
 
 The supervisor owns quality by planning, delegating, reviewing, and sending work back. The supervisor does not write product code.
 
-Spawn dev, reviewer, creative, Godot, docs, and release on the cheaper worker tier. Godot owns Godot 4 work and the export pipeline. Do not assign that work to the generic dev worker. Spawn docs when the user asks for docs or when user-facing technical text needs a rewrite. After a docs pass, store a short memory ref, not the full text.
+Spawn dev, reviewer, creative, Godot, docs, release, and the tester on the cheaper worker tier. Godot owns Godot 4 work and the export pipeline. Do not assign that work to the generic dev worker. The tester plays a game in a loop or focuses one area. Do not assign that play to dev or Godot. Spawn docs when the user asks for docs or when user-facing technical text needs a rewrite. After a docs pass, store a short memory ref, not the full text.
 
 Memory is a reference system. Pass node ids and short labels. Do not paste full blobs unless the task truly needs the blob.
 
