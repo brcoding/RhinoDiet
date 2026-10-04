@@ -2,6 +2,8 @@
 
 RhinoDiet is a Cursor plugin that cuts token use. It compresses prompts, delegates work to cheaper models, and stores project memory in a local SQLite graph. Later prompts cite node ids instead of pasting the same context again.
 
+Open the local walkthrough with `/rhinodiet`. The page is `http://127.0.0.1:8813/`. Start it with `rhinodiet guide`. Use `/supervisor` to plan and delegate.
+
 ## Install
 
 From this repo:
@@ -18,9 +20,45 @@ Load the plugin in Cursor:
 
 Local plugin imports must be allowed. On Enterprise that setting stays off until an admin enables Allow Local Plugin Imports.
 
+Play the built-in Pac-Man example in a short loop:
+
+```bash
+rhinodiet test
+```
+
+Play one area:
+
+```bash
+rhinodiet test --focus "avoid ghosts"
+```
+
+Open the history page:
+
+```bash
+rhinodiet test --serve
+```
+
+The page is `http://127.0.0.1:8797/`. It reads `.rhinodiet/tests/`, which is gitignored. Stills and `history.json` stay there.
+
+Show the saved runs and the commands that run tests:
+
+```bash
+rhinodiet test --show
+```
+
+In Cursor, `/showtests` runs that same read.
+
 Cursor skips a symlink in `~/.cursor/plugins/local` when the target sits outside that folder. Copy the directory.
 
 ## Run
+
+Open the walkthrough page:
+
+```bash
+rhinodiet guide
+```
+
+The page is `http://127.0.0.1:8813/`. In Cursor, `/rhinodiet` serves that page. `/supervisor` still runs the supervisor.
 
 Headless supervisor, no API key:
 
@@ -71,7 +109,7 @@ python -m rhinodiet.mcp_server
 | Role | Tier | Default model |
 | --- | --- | --- |
 | Supervisor | supervisor | inherit |
-| Dev, reviewer, creative, Godot, docs, release | worker | composer-2.5[fast=true] |
+| Dev, reviewer, creative, Godot, docs, release, tester | worker | composer-2.5[fast=true] |
 
 Workers default to the cheaper worker tier. The supervisor model is `inherit`, so it stays on the parent model. No API key is required. If `RHINODIET_MODEL_URL` is unset, dev, Godot, and reviewer use an offline client that records the task and does not invent product code. Creative uses a local SVG or storyboard unless `RHINODIET_CREATIVE_URL` is set. Docs rewrites text locally so facts stay exact without a model call. Godot stores the engine version and conventions as short refs, and it writes the Web export preset the release script already uses.
 
@@ -87,15 +125,16 @@ This is a thin graph API on SQLite. It keeps labeled nodes and typed edges in th
 
 ## Agents
 
-Invoke an agent with `/name` in Cursor chat, or ask the supervisor to delegate.
+Invoke an agent with `/name` in Cursor chat, or ask the supervisor to delegate. `/rhinodiet` opens the walkthrough at `http://127.0.0.1:8813/`. It does not run the supervisor.
 
 | Agent | Invoke | Job |
 | --- | --- | --- |
-| Supervisor | `/supervisor` or `/rhinodiet` | Plan, delegate, review, send work back. Does not write product code. |
+| Supervisor | `/supervisor` | Plan, delegate, review, send work back. Does not write product code. |
 | Dev | `/dev` | Simple code with straightforward unit tests. Prefer existing libraries. |
 | Reviewer | `/reviewer` | CodeRabbit-style review. Findings are instructions for the worker that made the change. Godot reviews use a short checklist. |
 | Creative | `/creative` | Images, textures, or video. Read style from memory first. |
 | Godot | `/godot` | Godot 4 scenes, GDScript, signals, the input map, and the export pipeline. Read engine version from memory first. |
+| Tester | `/tester` | Play a registered game in a loop, or focus one area. Read area refs from memory first. |
 | Docs | `/docs` | Rewrite technical text. About 30 percent shorter, active voice, facts exact. |
 | Release | `/release` | Only for package, release, or a dev test. Write scripts/release.sh and run that script. |
 
@@ -108,7 +147,7 @@ Supervisor flow:
 3. Plan and assign tasks to the cheapest fitting agent.
 4. Dev work returns to the reviewer when code changed. Godot work and pipeline integration go to the Godot worker, not the generic dev worker. Godot code changes return to the reviewer with the short checklist.
 5. The supervisor accepts or sends the review back to the worker that made the change. It does not patch the code.
-6. Creative, Godot, docs, and release run only when the request needs them. Creative makes the art. Godot places it. Release still serves, starts cloudflared when it is on PATH, commits, and opens pull requests.
+6. Creative, Godot, docs, release, and the tester run only when the request needs them. Creative makes the art. Godot places it. The tester plays. Release still serves, starts cloudflared when it is on PATH, commits, and opens pull requests.
 7. Write a short memory update of refs plus a compact summary.
 8. Compact when over the size threshold.
 
@@ -120,7 +159,7 @@ Comments stay terse. Prose is US English. Use commas and periods. Do not use em 
 
 ## Packaging gaps
 
-This repo uses the Cursor plugin manifest at `.cursor-plugin/plugin.json`. Rules, agents, a skill, a command, hooks, and `mcp.json` follow the current plugin docs.
+This repo uses the Cursor plugin manifest at `.cursor-plugin/plugin.json`. Rules, agents, a skill, commands, hooks, and `mcp.json` follow the current plugin docs.
 
 Cursor cannot express the whole product inside the manifest:
 
@@ -139,9 +178,34 @@ Cursor cannot express the whole product inside the manifest:
 - `rhinodiet_docs` rewrites technical text and stores a short ref.
 - `rhinodiet_creative` reads or defines style and writes a local artifact.
 - `rhinodiet_godot` reads or defines Godot refs and prepares the shared export preset. It does not serve.
+- `rhinodiet_test` plays a registered game in a loop, or focuses one area. It records stills under `.rhinodiet/tests/`.
 - `rhinodiet_release` writes `scripts/release.sh`.
 - `rhinodiet_remember` stores a short update and compacts when needed.
 - `rhinodiet_get` returns one node body when a task truly needs the blob.
+
+## Game tests
+
+Two modes use the same tester path. `rhinodiet test` is endurance. It plays to clear the board, twice by default, so a run can finish. `rhinodiet test --loops 4` or a request that asks for a longer run raises the cap. `rhinodiet test --focus "avoid ghosts"` plays one area and ignores the rest.
+
+Focus maps the phrase to a stored area. The score prefers an exact goal, name, or alias, then a phrase contained in the shorter goal. "avoid ghosts" selects `avoid-ghosts`. "restart" selects `restart`. "reach the end while avoiding ghosts" and "beat the level" select `clear-board`.
+
+The default run and "beat the level" mean clear the board. The driver reads the player, the ghosts, and the pellets. It eats pellets and flees ghosts until the board is clear, a ghost hits, or the safety cap. It does not stop on a 4 second timer. Four seconds alive with pellets left is a fail. A death records how far that attempt got. The endurance loop then tries again until the loop cap. Avoid ghosts uses the same chase. It passes only when the board is clear and no ghost caught Pac-Man. Restart is the only area that does not try to clear the board.
+
+Pac-Man in `benchmarks/godot-pacman` is the built-in example. The headless driver simulates input. It does not rebuild the export on port 8741. Areas:
+
+| Area | Goal | Pass | Fail |
+| --- | --- | --- | --- |
+| avoid-ghosts | Avoid ghosts. | Board clear and no ghost hit. | Pellets remain or a ghost catches Pac-Man. |
+| restart | Restart. | R restores pellets and the start cell. | The board stays ended. |
+| clear-board | Reach the end while avoiding ghosts. | No pellets left and no ghost hit. | A hit or pellets remain. |
+
+A game with no areas yet gets short refs from the tester: name, goal, and how to tell pass from fail. Later runs cite those ids. New games register areas the same way. The supervisor does not special-case Pac-Man.
+
+Each run records the time, the mode (`loop` or `focus`), the area name, pass or fail, a short result, and stills spread across the attempt. For Pac-Man the page also compares pellets eaten, time survived, ghosts hit, and whether the board was cleared with the previous run of that area. You can pick an earlier run of the same area on the page.
+
+`/showtests` reads `.rhinodiet/tests/history.json` and lists the commands that run tests. `rhinodiet test --show` is the same read. It does not start a new run.
+
+Godot still owns scenes and the export pipeline. The tester drives play. Release still serves, commits, and opens pull requests.
 
 ## Token comparison
 
