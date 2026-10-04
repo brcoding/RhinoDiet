@@ -2,6 +2,8 @@
 
 RhinoDiet is a Cursor plugin that cuts token use. It compresses prompts, delegates work to cheaper models, and stores project memory in a local SQLite graph. Later prompts cite node ids instead of pasting the same context again.
 
+Open the local walkthrough with `/rhinodiet`. The page is `http://127.0.0.1:8813/`. Start it with `rhinodiet guide`. Use `/supervisor` to plan and delegate.
+
 ## Install
 
 From this repo:
@@ -49,6 +51,14 @@ In Cursor, `/showtests` runs that same read.
 Cursor skips a symlink in `~/.cursor/plugins/local` when the target sits outside that folder. Copy the directory.
 
 ## Run
+
+Open the walkthrough page:
+
+```bash
+rhinodiet guide
+```
+
+The page is `http://127.0.0.1:8813/`. In Cursor, `/rhinodiet` serves that page. `/supervisor` still runs the supervisor.
 
 Headless supervisor, no API key:
 
@@ -115,11 +125,11 @@ This is a thin graph API on SQLite. It keeps labeled nodes and typed edges in th
 
 ## Agents
 
-Invoke an agent with `/name` in Cursor chat, or ask the supervisor to delegate.
+Invoke an agent with `/name` in Cursor chat, or ask the supervisor to delegate. `/rhinodiet` opens the walkthrough at `http://127.0.0.1:8813/`. It does not run the supervisor.
 
 | Agent | Invoke | Job |
 | --- | --- | --- |
-| Supervisor | `/supervisor` or `/rhinodiet` | Plan, delegate, review, send work back. Does not write product code. |
+| Supervisor | `/supervisor` | Plan, delegate, review, send work back. Does not write product code. |
 | Dev | `/dev` | Simple code with straightforward unit tests. Prefer existing libraries. |
 | Reviewer | `/reviewer` | CodeRabbit-style review. Findings are instructions for the worker that made the change. Godot reviews use a short checklist. |
 | Creative | `/creative` | Images, textures, or video. Read style from memory first. |

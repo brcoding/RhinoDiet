@@ -9,6 +9,7 @@ from pathlib import Path
 from rhinodiet.compress import compress
 from rhinodiet.docs import DocsWriter
 from rhinodiet.graph import format_cites
+from rhinodiet.guide import GUIDE_PORT, serve as serve_guide, start_guide
 from rhinodiet.supervisor import open_supervisor
 from rhinodiet.testhistory import PAGE_PORT, serve, show_tests
 from rhinodiet.tokens import format_report, record_transcript
@@ -40,6 +41,10 @@ def main(argv: list[str] | None = None) -> int:
     test.add_argument("--show", action="store_true", help="Print local test history and the test commands")
     test.add_argument("--port", type=int, default=PAGE_PORT)
 
+    guide = sub.add_parser("guide", help="Serve the local walkthrough page")
+    guide.add_argument("--serve", action="store_true", help="Stay in the foreground")
+    guide.add_argument("--port", type=int, default=GUIDE_PORT)
+
     tokens = sub.add_parser("tokens", help="Record reconstructed transcript totals")
     tokens_sub = tokens.add_subparsers(dest="tokens_cmd", required=True)
     record = tokens_sub.add_parser("record", help="Count a transcript and write the totals")
@@ -56,6 +61,17 @@ def main(argv: list[str] | None = None) -> int:
         from rhinodiet.config import project_dir
 
         serve(project_dir(), args.port)
+        return 0
+    if args.cmd == "guide":
+        if args.serve:
+            from rhinodiet.testhistory import port_open
+
+            if port_open(args.port):
+                print(f"Guide is already up at http://127.0.0.1:{args.port}/")
+                return 0
+            serve_guide(args.port)
+            return 0
+        print(start_guide(args.port))
         return 0
     if args.cmd == "tokens":
         dest = Path(args.out) if args.out else None
