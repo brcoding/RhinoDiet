@@ -61,7 +61,7 @@ def test_workers_are_the_cheaper_tier():
     assert cfg.supervisor_model == "inherit"
     assert cfg.worker_model != cfg.supervisor_model
     assert "fast=true" in cfg.worker_model
-    for name in ("dev", "reviewer", "creative", "release", "docs"):
+    for name in ("dev", "reviewer", "creative", "godot", "release", "docs"):
         assert cfg.agent_tiers[name] == "worker"
         assert cfg.model_for(name) == cfg.worker_model
     assert cfg.model_for("supervisor") == cfg.supervisor_model

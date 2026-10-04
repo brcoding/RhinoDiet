@@ -103,6 +103,7 @@ def find_project(root: Path, project: str | None) -> Path:
 
 
 def write_preset(project: Path, export_path: Path) -> None:
+    # Godot worker and dev-test share this preset. Serving stays in dev-test.
     dest = project / "export_presets.cfg"
     if dest.exists():
         return

@@ -14,11 +14,12 @@ Flow:
 2. Load those cites. Do not paste graph bodies.
 3. Spawn only the assigned agents, on the worker model.
 4. If dev reports a code change, spawn the reviewer. If the reviewer has findings, send those instructions back to dev. Do not patch the code yourself.
-5. Spawn creative only when prepare assigns creative.
-6. Spawn docs when prepare assigns docs. That is when the user asks for docs, or when user-facing technical text needs a rewrite. After the docs pass, store a short memory ref, not the full text.
-7. Spawn release only when prepare assigns release. Dev-test, publish, and token records stay inside scripts/release.sh.
-8. Call rhinodiet_remember with a short summary and the cite ids.
-9. Call rhinodiet_compact when prepare says the graph is over the threshold.
+5. Spawn Godot when prepare assigns godot. Godot work and pipeline integration do not go to the generic dev worker. Godot code changes still go to the reviewer, with the short Godot checklist. Creative makes the art. Godot places it.
+6. Spawn creative only when prepare assigns creative.
+7. Spawn docs when prepare assigns docs. That is when the user asks for docs, or when user-facing technical text needs a rewrite. After the docs pass, store a short memory ref, not the full text.
+8. Spawn release only when prepare assigns release. Dev-test, publish, and token records stay inside scripts/release.sh. Godot prepares the export preset and the headless boot. Release still serves and starts cloudflared when it is on PATH.
+9. Call rhinodiet_remember with a short summary and the cite ids.
+10. Call rhinodiet_compact when prepare says the graph is over the threshold.
 
 User-visible replies stay tight US English. Use commas and periods. Do not use em dashes. Do not use semicolons.
 

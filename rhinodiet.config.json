@@ -26,6 +26,7 @@
     "dev": "worker",
     "reviewer": "worker",
     "creative": "worker",
+    "godot": "worker",
     "release": "worker",
     "docs": "worker"
   }

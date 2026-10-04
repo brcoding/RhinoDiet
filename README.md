@@ -71,9 +71,9 @@ python -m rhinodiet.mcp_server
 | Role | Tier | Default model |
 | --- | --- | --- |
 | Supervisor | supervisor | inherit |
-| Dev, reviewer, creative, docs, release | worker | composer-2.5[fast=true] |
+| Dev, reviewer, creative, Godot, docs, release | worker | composer-2.5[fast=true] |
 
-Workers default to the cheaper worker tier. The supervisor model is `inherit`, so it stays on the parent model. No API key is required. If `RHINODIET_MODEL_URL` is unset, dev and reviewer use an offline client that records the task and does not invent product code. Creative uses a local SVG or storyboard unless `RHINODIET_CREATIVE_URL` is set. Docs rewrites text locally so facts stay exact without a model call.
+Workers default to the cheaper worker tier. The supervisor model is `inherit`, so it stays on the parent model. No API key is required. If `RHINODIET_MODEL_URL` is unset, dev, Godot, and reviewer use an offline client that records the task and does not invent product code. Creative uses a local SVG or storyboard unless `RHINODIET_CREATIVE_URL` is set. Docs rewrites text locally so facts stay exact without a model call. Godot stores the engine version and conventions as short refs, and it writes the Web export preset the release script already uses.
 
 ## Memory
 
@@ -93,8 +93,9 @@ Invoke an agent with `/name` in Cursor chat, or ask the supervisor to delegate.
 | --- | --- | --- |
 | Supervisor | `/supervisor` or `/rhinodiet` | Plan, delegate, review, send work back. Does not write product code. |
 | Dev | `/dev` | Simple code with straightforward unit tests. Prefer existing libraries. |
-| Reviewer | `/reviewer` | CodeRabbit-style review. Findings are instructions for dev. |
+| Reviewer | `/reviewer` | CodeRabbit-style review. Findings are instructions for the worker that made the change. Godot reviews use a short checklist. |
 | Creative | `/creative` | Images, textures, or video. Read style from memory first. |
+| Godot | `/godot` | Godot 4 scenes, GDScript, signals, the input map, and the export pipeline. Read engine version from memory first. |
 | Docs | `/docs` | Rewrite technical text. About 30 percent shorter, active voice, facts exact. |
 | Release | `/release` | Only for package, release, or a dev test. Write scripts/release.sh and run that script. |
 
@@ -105,9 +106,9 @@ Supervisor flow:
 1. Compress the incoming request.
 2. Load graph references, not full history.
 3. Plan and assign tasks to the cheapest fitting agent.
-4. Dev work returns to the reviewer when code changed.
-5. The supervisor accepts or sends the review back to dev. It does not patch the code.
-6. Creative, docs, and release run only when the request needs them.
+4. Dev work returns to the reviewer when code changed. Godot work and pipeline integration go to the Godot worker, not the generic dev worker. Godot code changes return to the reviewer with the short checklist.
+5. The supervisor accepts or sends the review back to the worker that made the change. It does not patch the code.
+6. Creative, Godot, docs, and release run only when the request needs them. Creative makes the art. Godot places it. Release still serves, starts cloudflared when it is on PATH, commits, and opens pull requests.
 7. Write a short memory update of refs plus a compact summary.
 8. Compact when over the size threshold.
 
@@ -137,6 +138,7 @@ Cursor cannot express the whole product inside the manifest:
 - `rhinodiet_cite` returns references.
 - `rhinodiet_docs` rewrites technical text and stores a short ref.
 - `rhinodiet_creative` reads or defines style and writes a local artifact.
+- `rhinodiet_godot` reads or defines Godot refs and prepares the shared export preset. It does not serve.
 - `rhinodiet_release` writes `scripts/release.sh`.
 - `rhinodiet_remember` stores a short update and compacts when needed.
 - `rhinodiet_get` returns one node body when a task truly needs the blob.
@@ -150,18 +152,18 @@ Headline counts use tiktoken `o200k_base`. Output tokens are harness fixtures, c
 | Condition | Input | Output | Total |
 | --- | --- | --- | --- |
 | Without plugin | 3890 | 354 | 4244 |
-| With RhinoDiet | 1855 | 287 | 2142 |
-| Saved | 2035 | 67 | 2102 (49.5%) |
+| With RhinoDiet | 1914 | 287 | 2201 |
+| Saved | 1976 | 67 | 2043 (48.1%) |
 
 The later turn is the long-context case. Input on that turn is 1535 tokens without the plugin and 267 tokens with RhinoDiet, an 82.6 percent reduction. Without the plugin that turn resends the spec, the file tree, the review notes, and earlier replies. With RhinoDiet that turn cites stored node ids and short labels.
 
-The first turn still sends the spec. Caveman compression and the reviewer pass put that turn's input at 1126 tokens with the plugin and 1061 without it. Output is 67 tokens lower with the plugin on these harness fixtures and the docs rewrite.
+The first turn still sends the spec. Caveman compression and the reviewer pass put that turn's input at 1191 tokens with the plugin and 1061 without it. Output is 67 tokens lower with the plugin on these harness fixtures and the docs rewrite.
 
 Compression kept the maze size (19 columns by 21 rows), the controls (arrow keys and WASD), the win rule (win when every pellet is eaten), the lose rule (lose when a ghost touches the player), and the file names (scripts/player.gd, scripts/ghost.gd, scripts/maze.gd, scripts/hud.gd, scripts/main.gd).
 
-The plugin counter, a local whitespace split, totals 4531 without the plugin and 2162 with it. The table uses tiktoken o200k_base. That count is the headline.
+The plugin counter, a local whitespace split, totals 4531 without the plugin and 2217 with it. The table uses tiktoken o200k_base. That count is the headline.
 
-Illustration only, from public list prices. At the OpenAI GPT-4o standard list price of $2.50 per 1M input tokens and $10 per 1M output tokens, published 2 Oct 2026, these counts come to $0.0133 without the plugin and $0.0075 with it. Per 1,000 runs the illustration is $13.30 versus $7.50. The configured worker model is composer-2.5 fast. This sketch uses the GPT-4o list, which is a different price.
+Illustration only, from public list prices. At the OpenAI GPT-4o standard list price of $2.50 per 1M input tokens and $10 per 1M output tokens, published 2 Oct 2026, these counts come to $0.0133 without the plugin and $0.0077 with it. Per 1,000 runs the illustration is $13.30 versus $7.70. The configured worker model is composer-2.5 fast. This sketch uses the GPT-4o list, which is a different price.
 
 Godot 4.3 ran headless on benchmarks/godot-pacman. The main scene loaded, reported 201 pellets and 2 ghosts, and exited cleanly.
 
