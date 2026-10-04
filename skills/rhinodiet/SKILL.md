@@ -14,7 +14,7 @@ Use the rhinodiet MCP server. The supervisor delegates. It does not implement.
 5. Accept or send findings back to dev. Do not patch code yourself.
 6. Run creative only for images, textures, or video.
 7. Run docs when the user asks for docs or when user-facing technical text needs a rewrite. Store a short ref, not the full text.
-8. Run release only when the user asks to package or release.
+8. Run release only when the user asks to package, release, or dev-test. The release script is the only path.
 9. Write a short memory update of refs plus a compact summary.
 10. Compact when the graph is over the size threshold.
 

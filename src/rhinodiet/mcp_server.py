@@ -73,7 +73,7 @@ TOOLS = [
     },
     {
         "name": "rhinodiet_release",
-        "description": "Write scripts/release.sh. That script is the release path.",
+        "description": "Write scripts/release.sh. Dev-test, publish, and token records stay in that script.",
         "inputSchema": {
             "type": "object",
             "properties": {"request": {"type": "string"}},

@@ -96,7 +96,7 @@ Invoke an agent with `/name` in Cursor chat, or ask the supervisor to delegate.
 | Reviewer | `/reviewer` | CodeRabbit-style review. Findings are instructions for dev. |
 | Creative | `/creative` | Images, textures, or video. Read style from memory first. |
 | Docs | `/docs` | Rewrite technical text. About 30 percent shorter, active voice, facts exact. |
-| Release | `/release` | Only for package or release. Write a repeatable script. Commit and open a pull request when asked. |
+| Release | `/release` | Only for package, release, or a dev test. Write scripts/release.sh and run that script. |
 
 The docs worker runs when the user asks for docs, or when user-facing technical text needs a rewrite. A docs pass stores a short memory ref, not the full text.
 
@@ -171,6 +171,31 @@ Install the dev extra so tiktoken is available. Then rerun the count.
 python -m pip install -e ".[dev]"
 python benchmarks/token_compare.py
 ```
+
+## Measured agent runs
+
+The table above is a synthetic harness. It does not call a live model.
+
+The build and the dev-test release were separate cloud agent runs. The totals below are reconstructed from the exported transcripts with tiktoken `o200k_base`. Each prompt and output string is counted once. This is not a provider bill. The export had no usage field. The system prompt was not in the export. Arguments for edit, search, and web tools were not in the export, so output is a lower bound. Edit diffs are counted as input. The record is `benchmarks/measured/pacman-agents.json`.
+
+| Run | Input | Output | Total |
+| --- | --- | --- | --- |
+| Build `bc-01b54d90-3b71-589a-a51d-966be7a5b6f3` | 48472 | 41838 | 90310 |
+| Dev-test release `bc-fb2e8e48-a482-5978-ac16-31d7c59e648e` | 46373 | 50793 | 97166 |
+
+The release transcript has three user turns. Counted once, the launch is 71746 tokens, the IPv6 follow-up is 7071, and the tunnel follow-up is 18349. The first reply published a localhost URL. The next turn fixed an IPv4-only bind. A later turn started a tunnel by hand. `scripts/release.sh` was not what served the game.
+
+Resending prior transcript text on each generation reconstructs 3921856 tokens for the build and 4690453 tokens for the release. That replay figure is not a bill.
+
+Record another transcript with the same counter. Serve a dev test, or publish, from the same script.
+
+```bash
+rhinodiet tokens record transcript.json
+scripts/release.sh dev-test
+scripts/release.sh publish
+```
+
+`scripts/release.sh dev-test` exports the Godot HTML5 build when Godot is on PATH, serves it on IPv4 and IPv6, and prints both local URLs. When cloudflared is on PATH, that same command starts the tunnel and prints the public URL. `scripts/release.sh publish` commits, pushes, and opens a draft pull request when the branch does not already have an open one.
 
 ## License
 

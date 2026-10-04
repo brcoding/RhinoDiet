@@ -1,0 +1,142 @@
+{
+  "source": "reconstructed-transcript",
+  "tokenizer": "o200k_base",
+  "billed_usage": null,
+  "runs": [
+    {
+      "id": "bc-01b54d90-3b71-589a-a51d-966be7a5b6f3",
+      "name": "build",
+      "title": "Compare Pac-Man token use",
+      "unique": {
+        "input": 48472,
+        "output": 41838,
+        "total": 90310
+      },
+      "replay": {
+        "input": 3880018,
+        "output": 41838,
+        "total": 3921856,
+        "generations": 72
+      },
+      "unique_turns": [
+        {
+          "turn": 1,
+          "input": 48472,
+          "output": 41838,
+          "total": 90310
+        }
+      ],
+      "replay_turns": [
+        {
+          "turn": 1,
+          "input": 3880018,
+          "output": 41838,
+          "total": 3921856,
+          "generations": 72
+        }
+      ],
+      "categories": {
+        "user": 716,
+        "thinking": 32816,
+        "assistant": 540,
+        "tool_result": 47756,
+        "tool_args": 8482
+      },
+      "omitted_tool_args": [
+        "get_mcp_tools",
+        "glob_file_search",
+        "grep",
+        "search_replace",
+        "web_search"
+      ],
+      "notes": [
+        "Reconstructed from transcript text with tiktoken o200k_base.",
+        "Not billed usage. The export did not include a provider usage field.",
+        "The system prompt and the chat template are not in the export.",
+        "Tool arguments missing from the export are omitted from output.",
+        "Edit diffs are counted as input because the export stored them on the tool result."
+      ]
+    },
+    {
+      "id": "bc-fb2e8e48-a482-5978-ac16-31d7c59e648e",
+      "name": "release",
+      "title": "Launch Godot Pac-Man game",
+      "unique": {
+        "input": 46373,
+        "output": 50793,
+        "total": 97166
+      },
+      "replay": {
+        "input": 4639660,
+        "output": 50793,
+        "total": 4690453,
+        "generations": 96
+      },
+      "unique_turns": [
+        {
+          "turn": 1,
+          "input": 31422,
+          "output": 40324,
+          "total": 71746
+        },
+        {
+          "turn": 2,
+          "input": 3810,
+          "output": 3261,
+          "total": 7071
+        },
+        {
+          "turn": 3,
+          "input": 11141,
+          "output": 7208,
+          "total": 18349
+        }
+      ],
+      "replay_turns": [
+        {
+          "turn": 1,
+          "input": 2389141,
+          "output": 40324,
+          "total": 2429465,
+          "generations": 69
+        },
+        {
+          "turn": 2,
+          "input": 755016,
+          "output": 3261,
+          "total": 758277,
+          "generations": 10
+        },
+        {
+          "turn": 3,
+          "input": 1495503,
+          "output": 7208,
+          "total": 1502711,
+          "generations": 17
+        }
+      ],
+      "categories": {
+        "user": 367,
+        "thinking": 17921,
+        "assistant": 669,
+        "tool_result": 46006,
+        "tool_args": 32203
+      },
+      "omitted_tool_args": [
+        "get_mcp_tools",
+        "glob_file_search",
+        "grep",
+        "mcp",
+        "search_replace",
+        "web_search"
+      ],
+      "notes": [
+        "Reconstructed from transcript text with tiktoken o200k_base.",
+        "Not billed usage. The export did not include a provider usage field.",
+        "The system prompt and the chat template are not in the export.",
+        "Tool arguments missing from the export are omitted from output.",
+        "Edit diffs are counted as input because the export stored them on the tool result."
+      ]
+    }
+  ]
+}

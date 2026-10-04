@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import argparse
 import sys
+from pathlib import Path
 
 from rhinodiet.compress import compress
 from rhinodiet.docs import DocsWriter
 from rhinodiet.graph import format_cites
 from rhinodiet.supervisor import open_supervisor
+from rhinodiet.tokens import format_report, record_transcript
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -30,7 +32,17 @@ def main(argv: list[str] | None = None) -> int:
     docs = sub.add_parser("docs", help="Rewrite technical text and store a short ref")
     docs.add_argument("text")
 
+    tokens = sub.add_parser("tokens", help="Record reconstructed transcript totals")
+    tokens_sub = tokens.add_subparsers(dest="tokens_cmd", required=True)
+    record = tokens_sub.add_parser("record", help="Count a transcript and write the totals")
+    record.add_argument("transcript")
+    record.add_argument("--out")
+
     args = parser.parse_args(argv)
+    if args.cmd == "tokens":
+        dest = Path(args.out) if args.out else None
+        print(format_report(record_transcript(Path(args.transcript), dest)))
+        return 0
     if args.cmd == "compress":
         result = compress(args.text, args.mode)
         print(result.text)
