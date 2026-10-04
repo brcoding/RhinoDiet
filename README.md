@@ -6,17 +6,19 @@ Open the local walkthrough with `/rhinodiet`. The page is `http://127.0.0.1:8813
 
 ## Install
 
-From this repo:
+Getting started is one command. From the project directory:
 
 ```bash
-python -m pip install -e ".[dev]"
+PYTHONPATH=src python3 -m rhinodiet init
 ```
 
-Load the plugin in Cursor:
+That is `rhinodiet init`. In Cursor, `/rhinodiet-init` runs the same setup. It creates the venv, runs `pip install -e ".[dev]"`, and on WSL copies the project into `%USERPROFILE%\.cursor\plugins\local\rhinodiet`. The copy is a real directory, not a symlink. Then reload Cursor and run `/rhinodiet`.
 
-1. Copy this directory to `~/.cursor/plugins/local/rhinodiet`.
-2. Reload Cursor.
-3. Open Customize and confirm the RhinoDiet rules, agents, and MCP server.
+`rhinodiet` is the console script from that install, not a separate app. A normal venv puts it at `.venv/bin/rhinodiet`. If the project is on a Windows drive under WSL (`/mnt/<letter>`), the venv cannot sit on that drive, so init uses `~/.venv/rhinodiet` and the script is `~/.venv/rhinodiet/bin/rhinodiet`. `source ~/.venv/rhinodiet/bin/activate` makes the short name work. From PowerShell the command does not exist. Run it in WSL.
+
+On Windows, Cursor starts the MCP server through WSL when `wsl.exe` exists. If `wsl.exe` is missing, the launcher tries `py -3`, then `python`. Linux still launches through `hooks/mcp.sh`.
+
+After init, reload Cursor and confirm the rules, the agents, and the MCP server.
 
 Local plugin imports must be allowed. On Enterprise that setting stays off until an admin enables Allow Local Plugin Imports.
 
@@ -60,7 +62,7 @@ rhinodiet guide
 
 The page is `http://127.0.0.1:8813/`. In Cursor, `/rhinodiet` serves that page. `/supervisor` still runs the supervisor.
 
-Headless supervisor, no API key:
+After init, activate the venv in WSL. The short name then runs the headless supervisor, with no API key:
 
 ```bash
 rhinodiet run "add a token expiry check in src/auth/session.py"

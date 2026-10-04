@@ -31,6 +31,20 @@ def test_guide_page_walks_through_in_order():
     assert "Memory cites" in visible
     assert "/showtests" in visible
     assert "Test commands" in visible
+    assert "rhinodiet init" in visible
+    assert "PYTHONPATH=src python3 -m rhinodiet init" in visible
+    assert "/rhinodiet-init" in visible
+    assert "reload Cursor" in visible
+    install = html.split('id="install"', 1)[1].split('id="first-run"', 1)[0]
+    first = html.split('id="first-run"', 1)[1].split('id="workers"', 1)[0]
+    assert "rhinodiet run" not in install
+    assert "rhinodiet run" not in first
+    assert "It is not a separate app." in visible
+    assert ".venv/bin/rhinodiet" in visible
+    assert "~/.venv/rhinodiet/bin/rhinodiet" in visible
+    assert "source ~/.venv/rhinodiet/bin/activate" in visible
+    assert "From PowerShell the command does not exist." in visible
+    assert "wsl.exe" in visible
     assert "The tester tries to beat the level." in visible
     assert "A few seconds of survival is not a pass." in visible
     assert ".rhinodiet/memory.db" in visible
@@ -51,6 +65,12 @@ def test_guide_page_walks_through_in_order():
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     assert "/rhinodiet" in readme
     assert f"http://127.0.0.1:{GUIDE_PORT}/" in readme
+    readme_install = readme.split("## Install", 1)[1].split("## Run", 1)[0]
+    assert "rhinodiet init" in readme_install
+    assert 'rhinodiet run "' not in readme_install
+    init_cmd = (ROOT / "commands" / "rhinodiet-init.md").read_text(encoding="utf-8")
+    assert "name: rhinodiet-init" in init_cmd
+    assert "PYTHONPATH=src python3 -m rhinodiet init" in init_cmd
     command = (ROOT / "commands" / "rhinodiet.md").read_text(encoding="utf-8")
     assert "name: rhinodiet" in command
     assert "rhinodiet guide" in command

@@ -3,7 +3,7 @@
   "hooks": {
     "sessionStart": [
       {
-        "command": "./hooks/session_start.py"
+        "command": "./hooks/session_start.cmd"
       }
     ]
   }
