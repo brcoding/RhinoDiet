@@ -36,6 +36,11 @@ _CREATIVE = re.compile(
     re.I,
 )
 _RELEASE = re.compile(r"\b(package|release|pull request)\b|\bopen a pr\b", re.I)
+_DEV_TEST = re.compile(
+    r"\bdev[- ]tests?\b|\bhtml5\b|\bexport\b.{0,48}\b(?:serve|game|web)\b|\bserve\b.{0,48}\b(?:export|game|html)\b",
+    re.I,
+)
+_DEV_TEST_PHRASE = re.compile(r"\bdev[- ]tests?\b", re.I)
 _DOCS_WORD = re.compile(
     r"\b(docs|documentation|readme|release notes)\b|\bdocument(?:\s+(?:the|this|how|our))?\b",
     re.I,
@@ -139,7 +144,7 @@ def plan(request: str) -> list[str]:
     docs = wants_docs(text)
     if _CREATIVE.search(text):
         tasks.append("creative")
-    if _DEV.search(text):
+    if wants_dev(text):
         tasks.append("dev")
     elif _REVIEW.search(text) and not docs:
         tasks.append("reviewer")
@@ -158,10 +163,15 @@ def wants_docs(text: str) -> bool:
     return bool(_PASSIVE_BY.search(text) and _TECH.search(text))
 
 
+def wants_dev(text: str) -> bool:
+    # "dev-test" is a release subcommand, not a code task.
+    return bool(_DEV.search(_DEV_TEST_PHRASE.sub(" ", text)))
+
+
 def wants_release(text: str) -> bool:
     if re.search(r"\brelease notes\b", text, re.I):
         return False
-    return bool(_RELEASE.search(text))
+    return bool(_RELEASE.search(text) or _DEV_TEST.search(text))
 
 
 def local_review(result: DevResult) -> list[str]:
