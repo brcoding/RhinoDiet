@@ -2,7 +2,16 @@
 
 RhinoDiet is a Cursor plugin that cuts token use. It compresses prompts, delegates work to cheaper models, and stores project memory in a local SQLite graph. Later prompts cite node ids instead of pasting the same context again.
 
-Open the local walkthrough with `/rhinodiet`. The page is `http://127.0.0.1:8813/`. Start it with `rhinodiet guide`. Use `/supervisor` to plan and delegate.
+Type `/rhinodiet` in Cursor. These four commands show up together:
+
+- `/rhinodiet` opens the walkthrough. `rhinodiet guide`
+- `/rhinodiet-init` creates the venv and copies the plugin. `rhinodiet init`
+- `/rhinodiet-showtests` prints saved test runs. `rhinodiet test --show`
+- `/rhinodiet-supervisor` plans and delegates. `rhinodiet run "your request"`
+
+`/showtests` is the same as `/rhinodiet-showtests`. `/supervisor` is the same as `/rhinodiet-supervisor`.
+
+The page is `http://127.0.0.1:8813/`. The plugin reference accepts a `commands` path, so `.cursor-plugin/plugin.json` sets `commands` to `./commands`.
 
 ## Install
 
@@ -48,7 +57,7 @@ Show the saved runs and the commands that run tests:
 rhinodiet test --show
 ```
 
-In Cursor, `/showtests` runs that same read.
+In Cursor, `/rhinodiet-showtests` runs that same read. `/showtests` is the same command.
 
 Cursor skips a symlink in `~/.cursor/plugins/local` when the target sits outside that folder. Copy the directory.
 
@@ -60,7 +69,7 @@ Open the walkthrough page:
 rhinodiet guide
 ```
 
-The page is `http://127.0.0.1:8813/`. In Cursor, `/rhinodiet` serves that page. `/supervisor` still runs the supervisor.
+The page is `http://127.0.0.1:8813/`. In Cursor, `/rhinodiet` serves that page. `/rhinodiet-supervisor` runs the supervisor. `/supervisor` is the same command.
 
 After init, activate the venv in WSL. The short name then runs the headless supervisor, with no API key:
 
@@ -131,7 +140,7 @@ Invoke an agent with `/name` in Cursor chat, or ask the supervisor to delegate. 
 
 | Agent | Invoke | Job |
 | --- | --- | --- |
-| Supervisor | `/supervisor` | Plan, delegate, review, send work back. Does not write product code. |
+| Supervisor | `/rhinodiet-supervisor` | Plan, delegate, review, send work back. Does not write product code. `/supervisor` is the same command. |
 | Dev | `/dev` | Simple code with straightforward unit tests. Prefer existing libraries. |
 | Reviewer | `/reviewer` | CodeRabbit-style review. Findings are instructions for the worker that made the change. Godot reviews use a short checklist. |
 | Creative | `/creative` | Images, textures, or video. Read style from memory first. |
@@ -205,7 +214,7 @@ A game with no areas yet gets short refs from the tester: name, goal, and how to
 
 Each run records the time, the mode (`loop` or `focus`), the area name, pass or fail, a short result, and stills spread across the attempt. For Pac-Man the page also compares pellets eaten, time survived, ghosts hit, and whether the board was cleared with the previous run of that area. You can pick an earlier run of the same area on the page.
 
-`/showtests` reads `.rhinodiet/tests/history.json` and lists the commands that run tests. `rhinodiet test --show` is the same read. It does not start a new run.
+`/rhinodiet-showtests` reads `.rhinodiet/tests/history.json` and lists the commands that run tests. `/showtests` is the same command. `rhinodiet test --show` is the same read. It does not start a new run.
 
 Godot still owns scenes and the export pipeline. The tester drives play. Release still serves, commits, and opens pull requests.
 

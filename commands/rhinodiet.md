@@ -1,6 +1,6 @@
 ---
 name: rhinodiet
-description: Open the local RhinoDiet walkthrough page
+description: RhinoDiet: Open the local walkthrough page
 ---
 
 # RhinoDiet
@@ -11,4 +11,4 @@ Run `rhinodiet guide` in the project directory. If the page is already up, share
 
 The page is `http://127.0.0.1:8813/`.
 
-Use `/supervisor` when the user wants the supervisor to plan and delegate.
+Use `/rhinodiet-supervisor` when the user wants the supervisor to plan and delegate. `/supervisor` is the same command.

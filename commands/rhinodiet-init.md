@@ -1,6 +1,6 @@
 ---
 name: rhinodiet-init
-description: Create the venv, install RhinoDiet, and copy the plugin into Cursor
+description: RhinoDiet: Create the venv, install the plugin, and copy it into Cursor
 ---
 
 # Init

@@ -31,9 +31,17 @@ def test_guide_page_walks_through_in_order():
     assert "Memory cites" in visible
     assert "/showtests" in visible
     assert "Test commands" in visible
+    top = html.split('id="does"', 1)[0]
+    assert top.index("/rhinodiet-init") < top.index("/rhinodiet-showtests") < top.index("/rhinodiet-supervisor")
+    assert "rhinodiet guide" in top
+    assert "rhinodiet init" in top
+    assert "rhinodiet test --show" in top
+    assert 'rhinodiet run "your request"' in top
     assert "rhinodiet init" in visible
     assert "PYTHONPATH=src python3 -m rhinodiet init" in visible
     assert "/rhinodiet-init" in visible
+    assert "/rhinodiet-showtests" in visible
+    assert "/rhinodiet-supervisor" in visible
     assert "reload Cursor" in visible
     install = html.split('id="install"', 1)[1].split('id="first-run"', 1)[0]
     first = html.split('id="first-run"', 1)[1].split('id="workers"', 1)[0]
@@ -68,9 +76,24 @@ def test_guide_page_walks_through_in_order():
     readme_install = readme.split("## Install", 1)[1].split("## Run", 1)[0]
     assert "rhinodiet init" in readme_install
     assert 'rhinodiet run "' not in readme_install
+    manifest = (ROOT / ".cursor-plugin" / "plugin.json").read_text(encoding="utf-8")
+    assert '"commands": "./commands"' in manifest
+    assert "./commands" in readme
+    grouped = {
+        "rhinodiet.md": "name: rhinodiet\n",
+        "rhinodiet-init.md": "name: rhinodiet-init\n",
+        "rhinodiet-showtests.md": "name: rhinodiet-showtests\n",
+        "rhinodiet-supervisor.md": "name: rhinodiet-supervisor\n",
+    }
+    for filename, name_line in grouped.items():
+        text = (ROOT / "commands" / filename).read_text(encoding="utf-8")
+        assert name_line in text
+        assert "description: RhinoDiet:" in text
     init_cmd = (ROOT / "commands" / "rhinodiet-init.md").read_text(encoding="utf-8")
-    assert "name: rhinodiet-init" in init_cmd
     assert "PYTHONPATH=src python3 -m rhinodiet init" in init_cmd
+    for alias in ("showtests.md", "supervisor.md"):
+        alias_text = (ROOT / "commands" / alias).read_text(encoding="utf-8")
+        assert "description: RhinoDiet:" in alias_text
     command = (ROOT / "commands" / "rhinodiet.md").read_text(encoding="utf-8")
     assert "name: rhinodiet" in command
     assert "rhinodiet guide" in command

@@ -1,5 +1,5 @@
 ---
-name: showtests
+name: rhinodiet-showtests
 description: RhinoDiet: Show local game-test history and the commands that run the tests
 ---
 
@@ -11,4 +11,4 @@ That command reads `.rhinodiet/tests/history.json`. Do not replace it with a rem
 
 Keep the command list from the output. If the history page is already up, keep its URL. If it is not, keep the line that tells the user to start it.
 
-`/rhinodiet-showtests` is the same command.
+`/showtests` is the same command.
