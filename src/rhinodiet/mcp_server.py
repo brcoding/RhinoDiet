@@ -72,6 +72,15 @@ TOOLS = [
         },
     },
     {
+        "name": "rhinodiet_godot",
+        "description": "Read or define Godot refs, then prepare the shared export preset. Does not serve.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {"request": {"type": "string"}},
+            "required": ["request"],
+        },
+    },
+    {
         "name": "rhinodiet_release",
         "description": "Write scripts/release.sh. Dev-test, publish, and token records stay in that script.",
         "inputSchema": {
@@ -191,6 +200,9 @@ def _call_tool(name: str, args: dict) -> str:
     if name == "rhinodiet_creative":
         artifact = supervisor._creative(str(args.get("request") or ""))
         return json.dumps({"path": str(artifact.path), "summary": artifact.summary})
+    if name == "rhinodiet_godot":
+        note, _accepted = supervisor._run_godot(str(args.get("request") or ""), [], [])
+        return json.dumps({"summary": note})
     if name == "rhinodiet_release":
         result = supervisor.release.run(str(args.get("request") or ""), supervisor.project_root)
         return json.dumps({"script": str(result.script), "summary": result.summary})

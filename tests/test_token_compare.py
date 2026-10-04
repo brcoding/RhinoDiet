@@ -16,11 +16,11 @@ def test_comparison_cuts_tokens_and_keeps_facts():
     assert result["tokenizer"] == "o200k_base"
     assert result["inter_agent_mode"] == "caveman"
     assert result["plugins_invoked"] == ["prepare", "compress", "cite", "supervisor", "docs"]
-    assert result["agents"] == [["dev", "reviewer"], ["dev", "reviewer"], ["docs"]]
+    assert result["agents"] == [["godot", "reviewer"], ["dev", "reviewer"], ["docs"]]
     assert result["caveman_modes"] == ["caveman", "caveman"]
     assert result["calls3"] == 0
     assert result["prepare"]["turn1_after"] < result["prepare"]["turn1_before"]
-    assert result["prepare"]["turn1_agents"] == ["dev"]
+    assert result["prepare"]["turn1_agents"] == ["godot"]
     assert result["prepare"]["turn2_agents"] == ["dev"]
     assert result["prepare"]["turn3_agents"] == ["docs"]
     assert result["prepare"]["turn3_cites"] == 5

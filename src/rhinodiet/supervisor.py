@@ -13,6 +13,7 @@ from rhinodiet.compress import compress, user_visible
 from rhinodiet.config import Config
 from rhinodiet.creative import CreativeService
 from rhinodiet.docs import DocsResult, DocsWriter
+from rhinodiet.godot import GodotService
 from rhinodiet.graph import Citation, GraphStore, format_cites
 from rhinodiet.release import ReleaseWriter
 
@@ -24,6 +25,16 @@ DEV_SYSTEM = (
 REVIEW_SYSTEM = (
     "You are the reviewer. Return JSON only with keys accept and findings. "
     "Findings are instructions for the dev worker. Do not edit code."
+)
+GODOT_SYSTEM = (
+    "You are the Godot worker. Return JSON only with keys summary, code_changed, files, tests. "
+    "Write GDScript, scenes, signals, and the input map for Godot 4. "
+    "Use the stored engine version and conventions. Place creative art. Do not serve or open a tunnel. "
+    "Terse comments. US English. No em dashes. No semicolons in prose."
+)
+_GODOT = re.compile(
+    r"\bgodot\b|\bgdscript\b|project\.godot|\bexport presets?\b|\binput map\b|\.gd\b|\.tscn\b|\bheadless\b",
+    re.I,
 )
 
 _DEV = re.compile(
@@ -69,7 +80,7 @@ class OfflineModel(ModelClient):
             raise RuntimeError("supervisor does not implement")
         if agent == "reviewer":
             return json.dumps({"accept": True, "findings": []})
-        if agent == "dev":
+        if agent in {"dev", "godot"}:
             return json.dumps(
                 {
                     "summary": "Queued the dev task for a worker model.",
@@ -144,7 +155,9 @@ def plan(request: str) -> list[str]:
     docs = wants_docs(text)
     if _CREATIVE.search(text):
         tasks.append("creative")
-    if wants_dev(text):
+    if wants_godot(text):
+        tasks.append("godot")
+    elif wants_dev(text):
         tasks.append("dev")
     elif _REVIEW.search(text) and not docs:
         tasks.append("reviewer")
@@ -161,6 +174,15 @@ def wants_docs(text: str) -> bool:
     if len(text.split()) < 40:
         return False
     return bool(_PASSIVE_BY.search(text) and _TECH.search(text))
+
+
+def wants_godot(text: str) -> bool:
+    if not _GODOT.search(text):
+        return False
+    # A docs rewrite can mention script names. That stays with docs.
+    if wants_docs(text) and not wants_dev(text):
+        return False
+    return True
 
 
 def wants_dev(text: str) -> bool:
@@ -216,6 +238,7 @@ class Supervisor:
         creative: CreativeService | None = None,
         docs: DocsWriter | None = None,
         release: ReleaseWriter | None = None,
+        godot: GodotService | None = None,
     ):
         self.graph = graph
         self.config = config
@@ -224,6 +247,8 @@ class Supervisor:
         self.creative = creative
         self.docs = docs or DocsWriter()
         self.release = release or ReleaseWriter()
+        self.godot = godot or GodotService(graph)
+        self._pending_art = ""
 
     def prepare(self, request: str) -> dict:
         packed = compress(request, self.config.input_mode)
@@ -269,7 +294,12 @@ class Supervisor:
             elif agent == "creative":
                 artifact = self._creative(request)
                 notes.append(artifact.summary)
+                self._pending_art = str(artifact.path)
                 trace.append("creative")
+            elif agent == "godot":
+                note, accepted = self._run_godot(request, cites, trace)
+                if note:
+                    notes.append(note)
             elif agent == "docs":
                 docs_result = self.docs.run(request)
                 trace.append("docs")
@@ -331,13 +361,63 @@ class Supervisor:
             tests=tests,
         )
 
-    def _call_review(self, result: DevResult, cites: list[Citation]) -> tuple[list[str], bool]:
-        payload = "\n".join([result.summary, *result.files, *result.tests])
+    def _run_godot(self, request: str, cites: list[Citation], trace: list[str]) -> tuple[str, bool]:
+        self.godot.ensure_refs(self.project_root)
+        note = self.godot.prepare_pipeline(self.project_root)
+        if self._pending_art:
+            note = f"{note} {self.godot.place_art(self._pending_art)}"
+        if wants_dev(request):
+            return note, self._godot_loop(request, cites, trace)
+        trace.append("godot")
+        return note, True
+
+    def _godot_loop(self, request: str, cites: list[Citation], trace: list[str]) -> bool:
+        result = self._call_godot(self._worker_prompt(request, cites))
+        trace.append("godot")
+        rounds = 0
+        while result.code_changed:
+            if rounds >= self.config.max_review_rounds:
+                return False
+            findings, accept = self._call_review(result, cites, worker="godot")
+            trace.append("reviewer")
+            rounds += 1
+            if accept:
+                return True
+            fix = "Apply the reviewer instructions.\n" + "\n".join(findings)
+            result = self._call_godot(self._worker_prompt(fix, cites))
+            trace.append("godot")
+        return True
+
+    def _call_godot(self, user: str) -> DevResult:
+        raw = self.model.complete("godot", self.config.worker_model, GODOT_SYSTEM, user)
+        data = parse_json_object(raw)
+        return DevResult(
+            summary=str(data.get("summary") or "").strip(),
+            code_changed=bool(data.get("code_changed")),
+            files=_str_list(data.get("files")),
+            tests=_str_list(data.get("tests")),
+        )
+
+    def _call_review(
+        self,
+        result: DevResult,
+        cites: list[Citation],
+        worker: str = "dev",
+    ) -> tuple[list[str], bool]:
+        lines = [result.summary, *result.files, *result.tests]
+        system = REVIEW_SYSTEM
+        prompt = self._worker_prompt("\n".join(lines), cites)
+        if worker == "godot":
+            system = (
+                "You are the reviewer. Return JSON only with keys accept and findings. "
+                "Findings are instructions for the Godot worker. Do not edit code."
+            )
+            prompt = prompt + "\nCHECK " + " ".join(self.godot.checklist_lines())
         raw = self.model.complete(
             "reviewer",
             self.config.worker_model,
-            REVIEW_SYSTEM,
-            self._worker_prompt(payload, cites),
+            system,
+            prompt,
         )
         data = parse_json_object(raw)
         findings = _str_list(data.get("findings"))
@@ -395,7 +475,8 @@ class Supervisor:
             if accepted:
                 parts.append("Review accepted.")
             else:
-                parts.append("Review still open. Sent findings back to dev.")
+                target = "godot" if "godot" in trace else "dev"
+                parts.append(f"Review still open. Sent findings back to {target}.")
         parts.extend(notes)
         if docs_result:
             parts.append(docs_result.summary_line)

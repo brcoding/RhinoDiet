@@ -154,7 +154,7 @@ class RecordingModel:
         )
         if agent == "reviewer":
             return json.dumps({"accept": True, "findings": []})
-        if agent == "dev":
+        if agent in {"dev", "godot"}:
             return json.dumps(
                 {
                     "summary": "Added the maze, the player, two ghosts, the score, and win and lose states.",
