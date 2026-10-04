@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import socket
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -35,6 +36,75 @@ def load_history(root: Path) -> dict:
     if not isinstance(data, dict) or not isinstance(data.get("runs"), list):
         return {"runs": []}
     return data
+
+
+TEST_COMMANDS = (
+    "rhinodiet test",
+    "rhinodiet test --loops N",
+    'rhinodiet test --focus "avoid ghosts"',
+    'rhinodiet test --focus "restart"',
+    'rhinodiet test --focus "reach the end while avoiding ghosts"',
+    "rhinodiet test --serve",
+)
+
+
+def port_open(port: int, host: str = "127.0.0.1") -> bool:
+    try:
+        with socket.create_connection((host, port), 0.3):
+            return True
+    except OSError:
+        return False
+
+
+def history_page_line(port: int = PAGE_PORT, probe=None) -> str:
+    up = probe(port) if probe is not None else port_open(port)
+    if up:
+        return f"History page is already up at http://127.0.0.1:{port}/."
+    return "History page is not running. Start it with rhinodiet test --serve."
+
+
+def _still_line(run: dict) -> str:
+    images = run.get("images") or []
+    folder = Path(".rhinodiet") / "tests" / str(run.get("id", ""))
+    if not images:
+        return f"No stills in {folder.as_posix()}."
+    paths = ", ".join((folder / name).as_posix() for name in images)
+    return f"Stills: {paths}."
+
+
+def _run_lines(run: dict) -> list[str]:
+    metrics = run.get("metrics") or {}
+    mark = "pass" if run.get("passed") else "fail"
+    cleared = "yes" if metrics.get("board_cleared") else "no"
+    when = run.get("at", "")
+    mode = run.get("mode", "")
+    area = run.get("area", "")
+    pellets = metrics.get("pellets_eaten", 0)
+    survived = metrics.get("time_survived", 0)
+    hits = metrics.get("ghosts_hit", 0)
+    return [
+        f"{when} {mode} {area} {mark}.",
+        f"Pellets eaten {pellets}. Time survived {survived} seconds. Ghosts hit {hits}. Board cleared {cleared}.",
+        _still_line(run),
+    ]
+
+
+def show_tests(root: Path, port: int = PAGE_PORT, probe=None) -> str:
+    runs = load_history(root).get("runs") or []
+    lines = ["Test history", ""]
+    if not runs:
+        lines.append("No test runs yet.")
+        lines.append("")
+    else:
+        for run in reversed(runs):
+            lines.extend(_run_lines(run))
+            lines.append("")
+    lines.append("Commands that run tests")
+    lines.append("")
+    lines.extend(TEST_COMMANDS)
+    lines.append("")
+    lines.append(history_page_line(port, probe))
+    return "\n".join(lines).rstrip() + "\n"
 
 
 def compare_metrics(current: dict, previous: dict) -> str:

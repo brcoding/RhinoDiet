@@ -38,6 +38,14 @@ rhinodiet test --serve
 
 The page is `http://127.0.0.1:8797/`. It reads `.rhinodiet/tests/`, which is gitignored. Stills and `history.json` stay there.
 
+Show the saved runs and the commands that run tests:
+
+```bash
+rhinodiet test --show
+```
+
+In Cursor, `/showtests` runs that same read.
+
 Cursor skips a symlink in `~/.cursor/plugins/local` when the target sits outside that folder. Copy the directory.
 
 ## Run
@@ -141,7 +149,7 @@ Comments stay terse. Prose is US English. Use commas and periods. Do not use em 
 
 ## Packaging gaps
 
-This repo uses the Cursor plugin manifest at `.cursor-plugin/plugin.json`. Rules, agents, a skill, a command, hooks, and `mcp.json` follow the current plugin docs.
+This repo uses the Cursor plugin manifest at `.cursor-plugin/plugin.json`. Rules, agents, a skill, commands, hooks, and `mcp.json` follow the current plugin docs.
 
 Cursor cannot express the whole product inside the manifest:
 
@@ -184,6 +192,8 @@ Pac-Man in `benchmarks/godot-pacman` is the built-in example. The headless drive
 A game with no areas yet gets short refs from the tester: name, goal, and how to tell pass from fail. Later runs cite those ids. New games register areas the same way. The supervisor does not special-case Pac-Man.
 
 Each run records the time, the mode (`loop` or `focus`), the area name, pass or fail, a short result, and stills spread across the attempt. For Pac-Man the page also compares pellets eaten, time survived, ghosts hit, and whether the board was cleared with the previous run of that area. You can pick an earlier run of the same area on the page.
+
+`/showtests` reads `.rhinodiet/tests/history.json` and lists the commands that run tests. `rhinodiet test --show` is the same read. It does not start a new run.
 
 Godot still owns scenes and the export pipeline. The tester drives play. Release still serves, commits, and opens pull requests.
 

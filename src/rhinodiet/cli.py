@@ -10,7 +10,7 @@ from rhinodiet.compress import compress
 from rhinodiet.docs import DocsWriter
 from rhinodiet.graph import format_cites
 from rhinodiet.supervisor import open_supervisor
-from rhinodiet.testhistory import PAGE_PORT, serve
+from rhinodiet.testhistory import PAGE_PORT, serve, show_tests
 from rhinodiet.tokens import format_report, record_transcript
 
 
@@ -37,6 +37,7 @@ def main(argv: list[str] | None = None) -> int:
     test.add_argument("--focus", default="", help="Play one area, for example avoid ghosts")
     test.add_argument("--loops", type=int, default=0, help="Endurance loops. Default is 2.")
     test.add_argument("--serve", action="store_true", help="Serve the local test history page")
+    test.add_argument("--show", action="store_true", help="Print local test history and the test commands")
     test.add_argument("--port", type=int, default=PAGE_PORT)
 
     tokens = sub.add_parser("tokens", help="Record reconstructed transcript totals")
@@ -46,6 +47,11 @@ def main(argv: list[str] | None = None) -> int:
     record.add_argument("--out")
 
     args = parser.parse_args(argv)
+    if args.cmd == "test" and args.show:
+        from rhinodiet.config import project_dir
+
+        print(show_tests(project_dir(), args.port), end="")
+        return 0
     if args.cmd == "test" and args.serve:
         from rhinodiet.config import project_dir
 

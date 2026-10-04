@@ -1,9 +1,12 @@
 """Game tester assignment, focus, Pac-Man play, and history stills."""
 
+import json
+
+from rhinodiet.cli import main
 from rhinodiet.pacman_play import PlayResult, World, attempt_passed, run_avoid, run_clear, run_restart
 from rhinodiet.supervisor import wants_dev, wants_godot, wants_tester
 from rhinodiet.tester import Area, GameSpec, TesterService, choose_area
-from rhinodiet.testhistory import compare_metrics, load_history, page_html, record_run
+from rhinodiet.testhistory import TEST_COMMANDS, compare_metrics, load_history, page_html, record_run, show_tests
 
 from support import ROOT, boot
 
@@ -226,3 +229,92 @@ def test_a_death_is_recorded_and_the_loop_tries_again(tmp_path):
     assert all(item["metrics"]["ghosts_hit"] == 1 for item in history["runs"])
     assert all(item["metrics"]["board_cleared"] is False for item in history["runs"])
     assert all(item["passed"] is False for item in history["runs"])
+
+
+def test_showtests_command_reads_history_json(tmp_path):
+    command = (ROOT / "commands" / "showtests.md").read_text(encoding="utf-8")
+    assert command.startswith("---\n")
+    assert "name: showtests" in command
+    assert "rhinodiet test --show" in command
+    assert "history.json" in command
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    assert "/showtests" in readme
+    folder = tmp_path / ".rhinodiet" / "tests" / "run-1"
+    folder.mkdir(parents=True)
+    (folder / "frame-000.png").write_bytes(b"\x89PNG")
+    payload = {
+        "runs": [
+            {
+                "id": "run-1",
+                "at": "2026-10-04T22:08:00Z",
+                "mode": "focus",
+                "area": "avoid-ghosts",
+                "passed": False,
+                "result": "Stopped after 4.0 seconds with pellets left.",
+                "metrics": {
+                    "pellets_eaten": 177,
+                    "time_survived": 4.0,
+                    "ghosts_hit": 0,
+                    "board_cleared": False,
+                },
+                "images": ["frame-000.png"],
+                "versus": "",
+            }
+        ]
+    }
+    history = tmp_path / ".rhinodiet" / "tests" / "history.json"
+    history.write_text(json.dumps(payload), encoding="utf-8")
+    text = show_tests(tmp_path, probe=lambda _port: True)
+    assert "2026-10-04T22:08:00Z" in text
+    assert "focus" in text
+    assert "avoid-ghosts" in text
+    assert "fail." in text
+    assert "Pellets eaten 177." in text
+    assert "Time survived 4.0 seconds." in text
+    assert "Ghosts hit 0." in text
+    assert "Board cleared no." in text
+    assert ".rhinodiet/tests/run-1/frame-000.png" in text
+    assert "http://127.0.0.1:8797/" in text
+    for line in TEST_COMMANDS:
+        assert line in text.splitlines()
+    missing = show_tests(tmp_path / "empty", probe=lambda _port: False)
+    assert "No test runs yet." in missing
+    assert "History page is not running. Start it with rhinodiet test --serve." in missing
+    assert "http://127.0.0.1:8797/" not in missing
+
+
+def test_show_cli_reads_history_without_playing(tmp_path, monkeypatch, capsys):
+    monkeypatch.setenv("RHINODIET_PROJECT", str(tmp_path))
+    monkeypatch.setattr("rhinodiet.testhistory.port_open", lambda _port: False)
+    assert main(["test", "--show"]) == 0
+    empty = capsys.readouterr().out
+    assert "No test runs yet." in empty
+    assert "History page is not running. Start it with rhinodiet test --serve." in empty
+    for line in TEST_COMMANDS:
+        assert line in empty.splitlines()
+    record_run(
+        tmp_path,
+        mode="loop",
+        area="clear-board",
+        passed=True,
+        result="Cleared the board.",
+        metrics={
+            "pellets_eaten": 201,
+            "time_survived": 217.1,
+            "ghosts_hit": 0,
+            "board_cleared": True,
+        },
+        frames=[b"\x89PNG"],
+    )
+    monkeypatch.setattr("rhinodiet.testhistory.port_open", lambda _port: True)
+    assert main(["test", "--show"]) == 0
+    shown = capsys.readouterr().out
+    assert "clear-board" in shown
+    assert "pass." in shown
+    assert "Pellets eaten 201." in shown
+    assert "Time survived 217.1 seconds." in shown
+    assert "Ghosts hit 0." in shown
+    assert "Board cleared yes." in shown
+    assert "frame-000.png" in shown
+    assert "History page is already up at http://127.0.0.1:8797/." in shown
+    assert "No registered game" not in shown
