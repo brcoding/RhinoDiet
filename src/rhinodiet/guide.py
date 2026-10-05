@@ -46,6 +46,9 @@ def page_html() -> str:
   .rule { margin: 12px 0; padding: 12px 14px; border-left: 3px solid #ffd56a; background: #1b2116; }
   .rule p { margin: 0; }
   .muted { color: #b7b29f; }
+  .cmdlist { list-style: none; margin: 0 0 12px; padding: 0; }
+  .cmdlist li { margin: 0 0 8px; padding: 10px 12px; background: #171d14; border: 1px solid #343b2c; border-radius: 10px; }
+  .cmdlist code { color: #ffd56a; }
   @media (max-width: 800px) {
     .shell { display: block; }
     nav { position: static; display: flex; gap: 12px; overflow-x: auto; padding: 16px; }
@@ -59,6 +62,7 @@ def page_html() -> str:
 <div class="shell">
   <nav aria-label="Tour steps">
     <p>Tour</p>
+    <a href="#commands">Commands</a>
     <a href="#does">1. What it does</a>
     <a href="#install">2. Install</a>
     <a href="#first-run">3. First run</a>
@@ -68,10 +72,17 @@ def page_html() -> str:
     <a href="#tests">7. Test commands</a>
   </nav>
   <main>
-    <header>
-      <p class="kicker">Local guide</p>
+    <header id="commands">
+      <p class="kicker">Commands</p>
       <h1>How to use RhinoDiet</h1>
-      <p>Seven steps. Each one is something you can run from this machine.</p>
+      <p>Type <code>/rhinodiet</code>. These four commands show up together.</p>
+      <ul class="cmdlist">
+        <li><code>/rhinodiet</code> opens this page. <code>rhinodiet guide</code></li>
+        <li><code>/rhinodiet-init</code> creates the venv and copies the plugin. <code>rhinodiet init</code></li>
+        <li><code>/rhinodiet-showtests</code> prints saved test runs. <code>rhinodiet test --show</code></li>
+        <li><code>/rhinodiet-supervisor</code> plans and delegates. <code>rhinodiet run "your request"</code></li>
+      </ul>
+      <p class="muted"><code>/showtests</code> is the same as <code>/rhinodiet-showtests</code>. <code>/supervisor</code> is the same as <code>/rhinodiet-supervisor</code>.</p>
     </header>
 
     <section id="does">
@@ -81,21 +92,18 @@ def page_html() -> str:
 
     <section id="install">
       <h2>Install</h2>
-      <p>From this repo, install the package and the test tools.</p>
-      <pre><code>python -m pip install -e ".[dev]"</code></pre>
-      <ol class="steps">
-        <li>Copy this directory to <code>~/.cursor/plugins/local/rhinodiet</code>. Copy the folder. Cursor skips a symlink whose target sits outside that directory.</li>
-        <li>Reload Cursor.</li>
-        <li>Open Customize and confirm the rules, the agents, and the MCP server.</li>
-      </ol>
+      <p>Getting started is <code>rhinodiet init</code>. From the project directory, before that console script exists, run the same setup as:</p>
+      <pre><code>PYTHONPATH=src python3 -m rhinodiet init</code></pre>
+      <p>In Cursor, <code>/rhinodiet-init</code> runs that command. It creates the venv, installs the package with <code>pip install -e ".[dev]"</code>, and on WSL copies the project into the local plugin folder. The copy is a real directory, not a symlink.</p>
+      <p>A normal venv lives at <code>.venv</code> in the project, and the script is <code>.venv/bin/rhinodiet</code>. <code>rhinodiet</code> is that console script. It is not a separate app. If the project is on a Windows drive under WSL, the venv cannot sit on that drive, so init puts it at <code>~/.venv/rhinodiet</code>. The script is then <code>~/.venv/rhinodiet/bin/rhinodiet</code>. <code>source ~/.venv/rhinodiet/bin/activate</code> makes the short name work. From PowerShell the command does not exist. Run it in WSL.</p>
+      <p>Then reload Cursor. Then run <code>/rhinodiet</code>.</p>
+      <p>On Windows, Cursor starts the MCP server through WSL when <code>wsl.exe</code> exists. If <code>wsl.exe</code> is missing, the launcher tries <code>py -3</code>, then <code>python</code>.</p>
       <p>Local plugin imports must be allowed. On Enterprise that stays off until an admin turns it on.</p>
     </section>
 
     <section id="first-run">
       <h2>First run</h2>
-      <p>In chat, use <code>/supervisor</code> on a real request. The supervisor plans and delegates. It does not write the product code.</p>
-      <p>From a terminal, the same loop runs with no API key.</p>
-      <pre><code>rhinodiet run "add a token expiry check in src/auth/session.py"</code></pre>
+      <p>After the reload, use <code>/rhinodiet-supervisor</code> on a real request. <code>/supervisor</code> is the same command. The supervisor plans and delegates. It does not write the product code.</p>
       <p class="muted"><code>/rhinodiet</code> opens this page. It does not run the supervisor.</p>
     </section>
 
@@ -103,7 +111,7 @@ def page_html() -> str:
       <h2>Supervisor and the cheaper workers</h2>
       <p>The supervisor stays on the parent model, <code>inherit</code>. Dev, reviewer, creative, docs, release, Godot, and tester use the cheaper worker tier, <code>composer-2.5[fast=true]</code>, from <code>rhinodiet.config.json</code>.</p>
       <ul>
-        <li><code>/supervisor</code> plans, delegates, reviews, and sends work back.</li>
+        <li><code>/rhinodiet-supervisor</code> plans, delegates, reviews, and sends work back. <code>/supervisor</code> is the same command.</li>
         <li><code>/dev</code> writes simple code and straightforward unit tests. Prefer a library that already exists.</li>
         <li><code>/reviewer</code> reviews the change. Findings go back to the worker that wrote it. Godot reviews use a short checklist.</li>
         <li><code>/creative</code> makes images, textures, or video. Read style from memory first.</li>
@@ -126,8 +134,8 @@ def page_html() -> str:
     </section>
 
     <section id="showtests">
-      <h2>/showtests</h2>
-      <p><code>/showtests</code> reads <code>.rhinodiet/tests/history.json</code> and prints each saved run. Time, mode, area, pass or fail, pellets, time survived, ghosts hit, board cleared, and the still paths are in that read.</p>
+      <h2>/rhinodiet-showtests</h2>
+      <p><code>/rhinodiet-showtests</code> reads <code>.rhinodiet/tests/history.json</code> and prints each saved run. <code>/showtests</code> is the same command. Time, mode, area, pass or fail, pellets, time survived, ghosts hit, board cleared, and the still paths are in that read.</p>
       <pre><code>rhinodiet test --show</code></pre>
       <p>History and stills live in <code>.rhinodiet/tests/</code>. The command does not start a new game.</p>
       <p>If the history page is already up, open <a href="http://127.0.0.1:8797/">http://127.0.0.1:8797/</a>. If it is not, start it with <code>rhinodiet test --serve</code>.</p>

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import subprocess
 import sys
 from pathlib import Path
 
@@ -45,6 +46,8 @@ def main(argv: list[str] | None = None) -> int:
     guide.add_argument("--serve", action="store_true", help="Stay in the foreground")
     guide.add_argument("--port", type=int, default=GUIDE_PORT)
 
+    sub.add_parser("init", help="Create the venv, install the package, and copy the plugin")
+
     tokens = sub.add_parser("tokens", help="Record reconstructed transcript totals")
     tokens_sub = tokens.add_subparsers(dest="tokens_cmd", required=True)
     record = tokens_sub.add_parser("record", help="Count a transcript and write the totals")
@@ -61,6 +64,20 @@ def main(argv: list[str] | None = None) -> int:
         from rhinodiet.config import project_dir
 
         serve(project_dir(), args.port)
+        return 0
+    if args.cmd == "init":
+        from rhinodiet.config import project_dir
+        from rhinodiet.setup import setup
+
+        try:
+            print(setup(project_dir()), end="")
+        except subprocess.CalledProcessError as exc:
+            detail = (exc.stderr or exc.stdout or "Setup failed.").strip()
+            print(detail, file=sys.stderr)
+            return exc.returncode or 1
+        except RuntimeError as exc:
+            print(str(exc), file=sys.stderr)
+            return 1
         return 0
     if args.cmd == "guide":
         if args.serve:

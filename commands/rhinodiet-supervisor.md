@@ -1,5 +1,5 @@
 ---
-name: supervisor
+name: rhinodiet-supervisor
 description: RhinoDiet: Run the supervisor on the current request
 ---
 
@@ -19,4 +19,4 @@ Reply in tight US English. Include cite ids. Do not paste memory blobs.
 
 `/rhinodiet` opens the walkthrough page. This command does not.
 
-`/rhinodiet-supervisor` is the same command.
+`/supervisor` is the same command.

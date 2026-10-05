@@ -5,5 +5,6 @@
   "version": "0.1.0",
   "license": "MIT",
   "keywords": ["tokens", "compression", "memory", "supervisor"],
-  "category": "productivity"
+  "category": "productivity",
+  "commands": "./commands"
 }
