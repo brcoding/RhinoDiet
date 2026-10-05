@@ -78,6 +78,16 @@ def test_guide_page_walks_through_in_order():
     assert 'rhinodiet run "' not in readme_install
     manifest = (ROOT / ".cursor-plugin" / "plugin.json").read_text(encoding="utf-8")
     assert '"commands": "./commands"' in manifest
+    assert '"name": "Barry Coding"' in manifest
+    assert '"repository": "https://github.com/brcoding/RhinoDiet"' in manifest
+    assert '"license": "MIT"' in manifest
+    assert '"version": "0.1.0"' in manifest
+    lead = readme.split("## Install", 1)[0]
+    assert "cuts token use" in lead
+    assert "Marketplace" in lead
+    assert "https://cursor.com/marketplace/publish" in lead
+    assert "rhinodiet init" in lead
+    assert "open a new chat" in lead
     assert "./commands" in readme
     grouped = {
         "rhinodiet.md": "name: rhinodiet\n",
