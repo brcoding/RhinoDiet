@@ -2,7 +2,17 @@
 
 RhinoDiet is a Cursor plugin that cuts token use. It compresses prompts, delegates work to cheaper models, and stores project memory in a local SQLite graph. Later prompts cite node ids instead of pasting the same context again.
 
-Type `/rhinodiet` in Cursor. These four commands show up together:
+Once Cursor lists RhinoDiet, install it from the Marketplace in Customize. This repo does not list the plugin. Submit the repository at https://cursor.com/marketplace/publish.
+
+Until that listing exists, local setup is one command from the project directory:
+
+```bash
+rhinodiet init
+```
+
+Then reload Cursor and open a new chat. On a fresh clone, before the console script exists, the same setup is `PYTHONPATH=src python3 -m rhinodiet init`.
+
+Type `/rhinodiet` in that chat. These four commands show up together:
 
 - `/rhinodiet` opens the walkthrough. `rhinodiet guide`
 - `/rhinodiet-init` creates the venv and copies the plugin. `rhinodiet init`
@@ -15,13 +25,7 @@ The page is `http://127.0.0.1:8813/`. The plugin reference accepts a `commands` 
 
 ## Install
 
-Getting started is one command. From the project directory:
-
-```bash
-PYTHONPATH=src python3 -m rhinodiet init
-```
-
-That is `rhinodiet init`. In Cursor, `/rhinodiet-init` runs the same setup. It creates the venv, runs `pip install -e ".[dev]"`, and on WSL copies the project into `%USERPROFILE%\.cursor\plugins\local\rhinodiet`. The copy is a real directory, not a symlink. Then reload Cursor and run `/rhinodiet`.
+`rhinodiet init` creates the venv, runs `pip install -e ".[dev]"`, and on WSL copies the project into `%USERPROFILE%\.cursor\plugins\local\rhinodiet`. The copy is a real directory, not a symlink. Then reload Cursor and open a new chat. In Cursor, `/rhinodiet-init` runs the same setup.
 
 `rhinodiet` is the console script from that install, not a separate app. A normal venv puts it at `.venv/bin/rhinodiet`. If the project is on a Windows drive under WSL (`/mnt/<letter>`), the venv cannot sit on that drive, so init uses `~/.venv/rhinodiet` and the script is `~/.venv/rhinodiet/bin/rhinodiet`. `source ~/.venv/rhinodiet/bin/activate` makes the short name work. From PowerShell the command does not exist. Run it in WSL.
 
