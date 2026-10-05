@@ -85,7 +85,8 @@ def test_guide_page_walks_through_in_order():
     lead = readme.split("## Install", 1)[0]
     assert "cuts token use" in lead
     assert "Marketplace" in lead
-    assert "https://cursor.com/marketplace/publish" in lead
+    assert "marketplace/publish" not in readme
+    assert "Submit the repository" not in readme
     assert "rhinodiet init" in lead
     assert "open a new chat" in lead
     assert "./commands" in readme
