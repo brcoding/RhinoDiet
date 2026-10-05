@@ -2,7 +2,7 @@
 
 RhinoDiet is a Cursor plugin that cuts token use. It compresses prompts, delegates work to cheaper models, and stores project memory in a local SQLite graph. Later prompts cite node ids instead of pasting the same context again.
 
-Once Cursor lists RhinoDiet, install it from the Marketplace in Customize. This repo does not list the plugin. Submit the repository at https://cursor.com/marketplace/publish.
+Once Cursor lists RhinoDiet, install it from the Marketplace in Customize.
 
 Until that listing exists, local setup is one command from the project directory:
 
