@@ -29,7 +29,7 @@ The page is `http://127.0.0.1:8813/`. The plugin reference accepts a `commands` 
 
 `rhinodiet` is the console script from that install, not a separate app. A normal venv puts it at `.venv/bin/rhinodiet`. If the project is on a Windows drive under WSL (`/mnt/<letter>`), the venv cannot sit on that drive, so init uses `~/.venv/rhinodiet` and the script is `~/.venv/rhinodiet/bin/rhinodiet`. `source ~/.venv/rhinodiet/bin/activate` makes the short name work. From PowerShell the command does not exist. Run it in WSL.
 
-On Windows, Cursor starts the MCP server through WSL when `wsl.exe` exists. If `wsl.exe` is missing, the launcher tries `py -3`, then `python`. Linux still launches through `hooks/mcp.sh`.
+On Windows, Cursor starts the MCP server with Windows Python. The launcher runs `py -3` on `hooks/mcp.py`, and if `py` is not on PATH it runs `python` on that same script. The script adds the plugin `src` directory and starts the server. It does not use WSL, and it does not use the venv from `rhinodiet init`. Linux runs the same script with `python3`. Windows needs Python 3.11 or newer. The server uses the standard library, so that interpreter needs no extra packages.
 
 After init, reload Cursor and confirm the rules, the agents, and the MCP server.
 
@@ -111,10 +111,10 @@ Tests:
 python -m pytest
 ```
 
-Cursor starts the MCP server from `mcp.json`. You can also run it yourself:
+Cursor starts the MCP server from `mcp.json`. On Windows that command is `py -3 hooks/mcp.py`, or `python hooks/mcp.py` when `py` is not on PATH. You can also run the same script yourself:
 
 ```bash
-python -m rhinodiet.mcp_server
+python3 hooks/mcp.py
 ```
 
 ## Model tiers

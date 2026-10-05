@@ -52,7 +52,10 @@ def test_guide_page_walks_through_in_order():
     assert "~/.venv/rhinodiet/bin/rhinodiet" in visible
     assert "source ~/.venv/rhinodiet/bin/activate" in visible
     assert "From PowerShell the command does not exist." in visible
-    assert "wsl.exe" in visible
+    assert "hooks/mcp.py" in visible
+    assert "py -3" in visible
+    assert "does not use WSL" in visible
+    assert "wsl.exe" not in visible
     assert "The tester tries to beat the level." in visible
     assert "A few seconds of survival is not a pass." in visible
     assert ".rhinodiet/memory.db" in visible
