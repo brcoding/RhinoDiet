@@ -97,7 +97,7 @@ def page_html() -> str:
       <p>In Cursor, <code>/rhinodiet-init</code> runs that command. It creates the venv, installs the package with <code>pip install -e ".[dev]"</code>, and on WSL copies the project into the local plugin folder. The copy is a real directory, not a symlink.</p>
       <p>A normal venv lives at <code>.venv</code> in the project, and the script is <code>.venv/bin/rhinodiet</code>. <code>rhinodiet</code> is that console script. It is not a separate app. If the project is on a Windows drive under WSL, the venv cannot sit on that drive, so init puts it at <code>~/.venv/rhinodiet</code>. The script is then <code>~/.venv/rhinodiet/bin/rhinodiet</code>. <code>source ~/.venv/rhinodiet/bin/activate</code> makes the short name work. From PowerShell the command does not exist. Run it in WSL.</p>
       <p>Then reload Cursor. Then run <code>/rhinodiet</code>.</p>
-      <p>On Windows, Cursor starts the MCP server through WSL when <code>wsl.exe</code> exists. If <code>wsl.exe</code> is missing, the launcher tries <code>py -3</code>, then <code>python</code>.</p>
+      <p>On Windows, Cursor starts the MCP server by running <code>hooks/mcp.py</code> with <code>py -3</code>. If <code>py</code> is not on PATH, it uses <code>python</code>. That script adds the plugin <code>src</code> directory and starts the server. It does not use WSL, and it does not use the init venv. Linux runs the same script with <code>python3</code>. Windows needs Python 3.11 or newer.</p>
       <p>Local plugin imports must be allowed. On Enterprise that stays off until an admin turns it on.</p>
     </section>
 
