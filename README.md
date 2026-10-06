@@ -2,31 +2,26 @@
 
 RhinoDiet is a Cursor plugin that cuts token use. It compresses prompts, delegates work to cheaper models, and stores project memory in a local SQLite graph. Later prompts cite node ids instead of pasting the same context again.
 
-The Cursor Marketplace is not listing this plugin. Install it from GitHub. Community listings belong on the Cursor directory at https://cursor.directory.
+The Cursor Marketplace is not listing this plugin. Paste one command.
+
+Windows, in PowerShell:
+
+```powershell
+irm https://raw.githubusercontent.com/brcoding/RhinoDiet/main/install.ps1 | iex
+```
+
+Linux and macOS:
 
 ```bash
-git clone https://github.com/brcoding/RhinoDiet.git
-cd RhinoDiet
+curl -fsSL https://raw.githubusercontent.com/brcoding/RhinoDiet/main/install.sh | sh
 ```
 
-On Windows, with Python 3.11 or newer:
-
-```bat
-py -3 install.py
-```
-
-If `py` is not on PATH, run `python install.py`. On Linux and macOS:
-
-```bash
-python3 install.py
-```
-
-Then reload Cursor and open a new chat. Type `/rhinodiet`. `rhinodiet init` is the same setup once that console script is on PATH.
+Reload Cursor and open a new chat. Type `/rhinodiet`.
 
 Type `/rhinodiet` in that chat. These four commands show up together:
 
 - `/rhinodiet` opens the walkthrough. `rhinodiet guide`
-- `/rhinodiet-init` creates the venv and copies the plugin. `rhinodiet init`
+- `/rhinodiet-init` installs the plugin. `rhinodiet init`
 - `/rhinodiet-showtests` prints saved test runs. `rhinodiet test --show`
 - `/rhinodiet-supervisor` plans and delegates. `rhinodiet run "your request"`
 
@@ -36,9 +31,9 @@ The page is `http://127.0.0.1:8813/`. The plugin reference accepts a `commands` 
 
 ## Install
 
-`py -3 install.py` on Windows, or `python3 install.py` on Linux and macOS, copies this repo into `~/.cursor/plugins/local/rhinodiet`. On Windows that folder is `%USERPROFILE%\.cursor\plugins\local\rhinodiet`. On WSL the copy goes to the Windows user profile, because that is where Cursor looks. The copy is a real directory, not a symlink. The same command creates a venv and runs `pip install -e ".[dev]"`. Then reload Cursor and open a new chat. In Cursor, `/rhinodiet-init` runs the same setup. `rhinodiet init` is that setup once the console script exists.
+Paste one command. On Windows, in PowerShell, run `irm https://raw.githubusercontent.com/brcoding/RhinoDiet/main/install.ps1 | iex`. On Linux and macOS, run `curl -fsSL https://raw.githubusercontent.com/brcoding/RhinoDiet/main/install.sh | sh`. The command downloads RhinoDiet into `~/.cursor/plugins/local/rhinodiet`. On Windows that folder is `%USERPROFILE%\.cursor\plugins\local\rhinodiet`. The copy is a real directory, not a symlink. Reload Cursor and open a new chat. In Cursor, `/rhinodiet-init` runs that same command.
 
-`rhinodiet` is the console script from that install, not a separate app. A normal venv puts it at `.venv/bin/rhinodiet`. On Windows the script is `.venv\Scripts\rhinodiet.exe`. If the project is on a Windows drive under WSL (`/mnt/<letter>`), the venv cannot sit on that drive, so init uses `~/.venv/rhinodiet` and the script is `~/.venv/rhinodiet/bin/rhinodiet`. `source ~/.venv/rhinodiet/bin/activate` makes the short name work.
+`rhinodiet init` installs the console script inside a checkout. You do not need it to load the plugin. `rhinodiet` is that console script, not a separate app. A normal venv puts it at `.venv/bin/rhinodiet`. On Windows the script is `.venv\Scripts\rhinodiet.exe`. If the project is on a Windows drive under WSL (`/mnt/<letter>`), the venv cannot sit on that drive, so init uses `~/.venv/rhinodiet` and the script is `~/.venv/rhinodiet/bin/rhinodiet`. `source ~/.venv/rhinodiet/bin/activate` makes the short name work.
 
 On Windows, Cursor starts the MCP server with Windows Python. The launcher runs `py -3` on `hooks/mcp.py`, and if `py` is not on PATH it runs `python` on that same script. The script adds the plugin `src` directory and starts the server. It does not use WSL, and it does not use the venv from `rhinodiet init`. Linux runs the same script with `python3`. Windows needs Python 3.11 or newer. The server uses the standard library, so that interpreter needs no extra packages.
 

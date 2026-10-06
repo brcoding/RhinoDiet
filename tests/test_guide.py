@@ -38,8 +38,9 @@ def test_guide_page_walks_through_in_order():
     assert "rhinodiet test --show" in top
     assert 'rhinodiet run "your request"' in top
     assert "rhinodiet init" in visible
-    assert "py -3 install.py" in visible
-    assert "python3 install.py" in visible
+    assert "irm https://raw.githubusercontent.com/brcoding/RhinoDiet/main/install.ps1 | iex" in visible
+    assert "curl -fsSL https://raw.githubusercontent.com/brcoding/RhinoDiet/main/install.sh | sh" in visible
+    assert "install.py" not in visible
     assert "/rhinodiet-init" in visible
     assert "/rhinodiet-showtests" in visible
     assert "/rhinodiet-supervisor" in visible
@@ -52,8 +53,8 @@ def test_guide_page_walks_through_in_order():
     assert ".venv/bin/rhinodiet" in visible
     assert "~/.venv/rhinodiet/bin/rhinodiet" in visible
     assert "source ~/.venv/rhinodiet/bin/activate" in visible
-    assert "python install.py" in visible
     assert ".cursor/plugins/local/rhinodiet" in visible
+    assert "cursor.directory" not in visible
     assert "hooks/mcp.py" in visible
     assert "py -3" in visible
     assert "does not use WSL" in visible
@@ -92,6 +93,11 @@ def test_guide_page_walks_through_in_order():
     assert "Marketplace" in lead
     assert "marketplace/publish" not in readme
     assert "Submit the repository" not in readme
+    assert "cursor.directory" not in readme
+    assert "install.ps1 | iex" in lead
+    assert "install.sh | sh" in lead
+    assert "git clone" not in lead
+    assert "cd RhinoDiet" not in lead
     assert "rhinodiet init" in lead
     assert "open a new chat" in lead
     assert "./commands" in readme
@@ -106,8 +112,8 @@ def test_guide_page_walks_through_in_order():
         assert name_line in text
         assert "description: RhinoDiet:" in text
     init_cmd = (ROOT / "commands" / "rhinodiet-init.md").read_text(encoding="utf-8")
-    assert "py -3 install.py" in init_cmd
-    assert "python3 install.py" in init_cmd
+    assert "install.ps1 | iex" in init_cmd
+    assert "install.sh | sh" in init_cmd
     for alias in ("showtests.md", "supervisor.md"):
         alias_text = (ROOT / "commands" / alias).read_text(encoding="utf-8")
         assert "description: RhinoDiet:" in alias_text
