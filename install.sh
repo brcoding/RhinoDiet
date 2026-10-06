@@ -1,5 +1,5 @@
 #!/bin/sh
-# Ask for Cursor, Claude, or Codex, then place the plugin there.
+# Ask for Cursor, Claude, or ChatGPT, then place the plugin there.
 set -eu
 home="${RHINODIET_HOME:-$HOME}"
 url="${RHINODIET_ZIP_URL:-https://github.com/brcoding/RhinoDiet/archive/refs/heads/main.zip}"
@@ -13,16 +13,16 @@ choose_host() {
     return
   fi
   if [ ! -r /dev/tty ]; then
-    echo "Set RHINODIET_HOST to cursor, claude, codex, or all." >&2
+    echo "Set RHINODIET_HOST to cursor, claude, chatgpt, or all." >&2
     exit 1
   fi
-  printf '%s\n' "Install RhinoDiet for:" "  1  Cursor" "  2  Claude" "  3  Codex" "  4  All" >/dev/tty
+  printf '%s\n' "Install RhinoDiet for:" "  1  Cursor" "  2  Claude" "  3  ChatGPT" "  4  All" >/dev/tty
   printf 'Choice: ' >/dev/tty
   read -r choice </dev/tty
   case "$choice" in
     1 | cursor | Cursor) printf '%s\n' cursor ;;
     2 | claude | Claude) printf '%s\n' claude ;;
-    3 | codex | Codex) printf '%s\n' codex ;;
+    3 | codex | Codex | chatgpt | ChatGPT) printf '%s\n' codex ;;
     4 | all | All) printf '%s\n' all ;;
     *)
       echo "Choose 1, 2, 3, or 4." >&2
@@ -42,7 +42,7 @@ path = home / ".agents" / "plugins" / "marketplace.json"
 entry = {
     "name": "rhinodiet",
     "source": {"source": "local", "path": "./.codex/plugins/rhinodiet"},
-    "policy": {"installation": "AVAILABLE", "authentication": "ON_INSTALL"},
+    "policy": {"installation": "INSTALLED_BY_DEFAULT", "authentication": "ON_INSTALL"},
     "category": "Productivity",
 }
 path.parent.mkdir(parents=True, exist_ok=True)
@@ -62,8 +62,46 @@ kept = [
 kept.append(entry)
 data["plugins"] = kept
 data.setdefault("name", "personal")
+data.setdefault("interface", {"displayName": "Personal"})
 path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
 PY
+}
+
+enable_chatgpt() {
+  plugin="$1"
+  market="$home/.agents/plugins/marketplace.json"
+  market_name=$(python3 - "$market" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+name = "personal"
+if path.exists():
+    loaded = json.loads(path.read_text(encoding="utf-8"))
+    if isinstance(loaded, dict):
+        value = loaded.get("name")
+        if isinstance(value, str) and value.strip():
+            name = value.strip()
+print(name)
+PY
+)
+  config="$home/.codex/config.toml"
+  mkdir -p "$(dirname "$config")"
+  marker="[plugins.\"rhinodiet@${market_name}\"]"
+  if [ ! -f "$config" ] || ! grep -F "$marker" "$config" >/dev/null 2>&1; then
+    printf '\n%s\nenabled = true\n' "$marker" >> "$config"
+  fi
+  if [ -d "$plugin/skills/rhinodiet" ]; then
+    skill="$home/.agents/skills/rhinodiet"
+    rm -rf "$skill"
+    mkdir -p "$(dirname "$skill")"
+    cp -R "$plugin/skills/rhinodiet" "$skill"
+  fi
+  cache="$home/.codex/plugins/cache/${market_name}/rhinodiet/local"
+  rm -rf "$cache"
+  mkdir -p "$(dirname "$cache")"
+  cp -R "$plugin" "$cache"
 }
 
 place_copy() {
@@ -72,7 +110,7 @@ place_copy() {
     claude) dest="$home/.claude/skills/rhinodiet" ;;
     codex) dest="$home/.codex/plugins/rhinodiet" ;;
     *)
-      echo "Choose Cursor, Claude, Codex, or all." >&2
+      echo "Choose Cursor, Claude, ChatGPT, or all." >&2
       exit 1
       ;;
   esac
@@ -84,15 +122,19 @@ place_copy() {
   fi
   if [ "$1" = "codex" ]; then
     write_codex_marketplace
+    enable_chatgpt "$dest"
   fi
 }
 
 host="$(choose_host)"
 host="$(printf '%s' "$host" | tr '[:upper:]' '[:lower:]')"
+if [ "$host" = "chatgpt" ]; then
+  host=codex
+fi
 case "$host" in
   cursor | claude | codex | all | update | upgrade) ;;
   *)
-    echo "Choose Cursor, Claude, Codex, or all." >&2
+    echo "Choose Cursor, Claude, ChatGPT, or all." >&2
     exit 1
     ;;
 esac
@@ -127,20 +169,24 @@ if [ "$host" = "update" ] || [ "$host" = "upgrade" ]; then
     printf '%s\n' "Restart Claude Code."
   fi
   if [ -d "$home/.codex/plugins/rhinodiet" ]; then
-    printf '%s\n' "Restart Codex."
+    printf '%s\n' "Restart ChatGPT."
   fi
-  printf '%s\n' "Type /rhinodiet."
+  if [ -d "$home/.cursor/plugins/local/rhinodiet" ] || [ -d "$home/.claude/skills/rhinodiet" ]; then
+    printf '%s\n' "Type /rhinodiet."
+  fi
+  if [ -d "$home/.codex/plugins/rhinodiet" ]; then
+    printf '%s\n' "In ChatGPT, type @rhinodiet."
+  fi
 elif [ "$host" = "all" ]; then
   place_copy cursor
   place_copy claude
   place_copy codex
-  printf '%s\n' "Reload Cursor." "Restart Claude Code." "Restart Codex." "Type /rhinodiet."
+  printf '%s\n' "Reload Cursor." "Restart Claude Code." "Restart ChatGPT." "Type /rhinodiet." "In ChatGPT, type @rhinodiet."
 else
   place_copy "$host"
   case "$host" in
-    cursor) printf '%s\n' "Reload Cursor." ;;
-    claude) printf '%s\n' "Restart Claude Code." ;;
-    codex) printf '%s\n' "Restart Codex." ;;
+    cursor) printf '%s\n' "Reload Cursor." "Type /rhinodiet." ;;
+    claude) printf '%s\n' "Restart Claude Code." "Type /rhinodiet." ;;
+    codex) printf '%s\n' "Restart ChatGPT." "In ChatGPT, type @rhinodiet." ;;
   esac
-  printf '%s\n' "Type /rhinodiet."
 fi

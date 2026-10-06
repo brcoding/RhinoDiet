@@ -1,11 +1,11 @@
 ---
 name: rhinodiet-init
-description: RhinoDiet: Install the plugin for Cursor, Claude, or Codex
+description: RhinoDiet: Install the plugin for Cursor, Claude, or ChatGPT
 ---
 
 # Init
 
-Run one command and show the output. The installer shows a menu. Pick Cursor, Claude, Codex, or all three. Do not print a checklist and stop.
+Run one command and show the output. The installer shows a menu. Pick Cursor, Claude, ChatGPT, or all three. In Cursor, type `/rhinodiet`. In ChatGPT, type `@rhinodiet`. Do not print a checklist and stop.
 
 On Windows, in PowerShell:
 

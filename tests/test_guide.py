@@ -42,7 +42,8 @@ def test_guide_page_walks_through_in_order():
     assert "curl -fsSL https://raw.githubusercontent.com/brcoding/RhinoDiet/main/install.sh | sh" in visible
     assert "1  Cursor" in visible
     assert "2  Claude" in visible
-    assert "3  Codex" in visible
+    assert "3  ChatGPT" in visible
+    assert "@rhinodiet" in visible
     assert "4  All" in visible
     assert "/rhinodiet-update" in visible
     assert "/rhinodiet-upgrade" in visible

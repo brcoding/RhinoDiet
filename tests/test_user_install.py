@@ -30,7 +30,7 @@ def test_readme_leads_with_one_command():
         assert "Install RhinoDiet for:" in text
         assert "1  Cursor" in text
         assert "2  Claude" in text
-        assert "3  Codex" in text
+        assert "3  ChatGPT" in text
         assert "4  All" in text
         assert "Reload Cursor." in text
 
@@ -129,7 +129,15 @@ def test_install_sh_registers_a_codex_marketplace_entry(tmp_path):
     assert names == ["other", "rhinodiet"]
     rhinodiet = data["plugins"][1]
     assert rhinodiet["source"]["path"] == "./.codex/plugins/rhinodiet"
-    assert proc.stdout.splitlines()[0] == "Restart Codex."
+    assert proc.stdout.splitlines() == [
+        "Restart ChatGPT.",
+        "In ChatGPT, type @rhinodiet.",
+    ]
+    config = (home / ".codex" / "config.toml").read_text(encoding="utf-8")
+    assert '[plugins."rhinodiet@personal"]' in config
+    assert "enabled = true" in config
+    cache = home / ".codex" / "plugins" / "cache" / "personal" / "rhinodiet" / "local"
+    assert (cache / "keep.txt").is_file()
 
 
 def test_install_sh_can_place_all_three(tmp_path):
@@ -151,8 +159,9 @@ def test_install_sh_can_place_all_three(tmp_path):
     assert proc.stdout.splitlines() == [
         "Reload Cursor.",
         "Restart Claude Code.",
-        "Restart Codex.",
+        "Restart ChatGPT.",
         "Type /rhinodiet.",
+        "In ChatGPT, type @rhinodiet.",
     ]
 
 
@@ -216,8 +225,9 @@ def test_install_sh_upgrade_installs_all_when_nothing_is_present(tmp_path):
         "Updated from GitHub.",
         "Reload Cursor.",
         "Restart Claude Code.",
-        "Restart Codex.",
+        "Restart ChatGPT.",
         "Type /rhinodiet.",
+        "In ChatGPT, type @rhinodiet.",
     ]
 
 
@@ -244,6 +254,20 @@ def test_cli_update_and_upgrade_call_install_sh(monkeypatch):
         assert Path(cmd[1]).is_file()
         assert host == "update"
         assert check is False
+
+
+def test_install_sh_copies_the_chatgpt_skill(tmp_path):
+    zip_path = tmp_path / "rhinodiet.zip"
+    with zipfile.ZipFile(zip_path, "w") as archive:
+        archive.writestr("RhinoDiet-main/skills/rhinodiet/SKILL.md", "---\nname: rhinodiet\n---\n")
+        archive.writestr("RhinoDiet-main/hooks/hooks.json", "{}\n")
+    home = tmp_path / "home"
+    proc = _run(home, zip_path, "chatgpt")
+    assert proc.returncode == 0, proc.stderr
+    skill = home / ".agents" / "skills" / "rhinodiet" / "SKILL.md"
+    assert "name: rhinodiet" in skill.read_text(encoding="utf-8")
+    assert not (home / ".codex" / "plugins" / "rhinodiet" / "hooks" / "hooks.json").exists()
+    assert (home / ".codex" / "plugins" / "cache" / "personal" / "rhinodiet" / "local" / "skills" / "rhinodiet" / "SKILL.md").is_file()
 
 
 def test_host_manifests_are_in_the_repo():
