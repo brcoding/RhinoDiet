@@ -1,16 +1,22 @@
 ---
 name: rhinodiet-init
-description: RhinoDiet: Create the venv, install the plugin, and copy it into Cursor
+description: RhinoDiet: Install the plugin into Cursor
 ---
 
 # Init
 
-Run the setup in the project directory. Do not print a checklist and stop. Show the command output.
+Run one command and show the output. Do not print a checklist and stop.
 
-From a fresh clone, before the console script exists:
+On Windows, in PowerShell:
 
-```bash
-PYTHONPATH=src python3 -m rhinodiet init
+```powershell
+irm https://raw.githubusercontent.com/brcoding/RhinoDiet/main/install.ps1 | iex
 ```
 
-`rhinodiet init` is the same command once that script is on PATH. Run it in WSL, not PowerShell.
+On Linux and macOS:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/brcoding/RhinoDiet/main/install.sh | sh
+```
+
+`rhinodiet init` installs the console script inside a checkout. Loading the plugin does not need it.

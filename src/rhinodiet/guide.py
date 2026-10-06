@@ -78,7 +78,7 @@ def page_html() -> str:
       <p>Type <code>/rhinodiet</code>. These four commands show up together.</p>
       <ul class="cmdlist">
         <li><code>/rhinodiet</code> opens this page. <code>rhinodiet guide</code></li>
-        <li><code>/rhinodiet-init</code> creates the venv and copies the plugin. <code>rhinodiet init</code></li>
+        <li><code>/rhinodiet-init</code> installs the plugin. <code>rhinodiet init</code></li>
         <li><code>/rhinodiet-showtests</code> prints saved test runs. <code>rhinodiet test --show</code></li>
         <li><code>/rhinodiet-supervisor</code> plans and delegates. <code>rhinodiet run "your request"</code></li>
       </ul>
@@ -92,11 +92,12 @@ def page_html() -> str:
 
     <section id="install">
       <h2>Install</h2>
-      <p>Getting started is <code>rhinodiet init</code>. From the project directory, before that console script exists, run the same setup as:</p>
-      <pre><code>PYTHONPATH=src python3 -m rhinodiet init</code></pre>
-      <p>In Cursor, <code>/rhinodiet-init</code> runs that command. It creates the venv, installs the package with <code>pip install -e ".[dev]"</code>, and on WSL copies the project into the local plugin folder. The copy is a real directory, not a symlink.</p>
-      <p>A normal venv lives at <code>.venv</code> in the project, and the script is <code>.venv/bin/rhinodiet</code>. <code>rhinodiet</code> is that console script. It is not a separate app. If the project is on a Windows drive under WSL, the venv cannot sit on that drive, so init puts it at <code>~/.venv/rhinodiet</code>. The script is then <code>~/.venv/rhinodiet/bin/rhinodiet</code>. <code>source ~/.venv/rhinodiet/bin/activate</code> makes the short name work. From PowerShell the command does not exist. Run it in WSL.</p>
-      <p>Then reload Cursor. Then run <code>/rhinodiet</code>.</p>
+      <p>Paste one command. On Windows, in PowerShell:</p>
+      <pre><code>irm https://raw.githubusercontent.com/brcoding/RhinoDiet/main/install.ps1 | iex</code></pre>
+      <p>On Linux and macOS:</p>
+      <pre><code>curl -fsSL https://raw.githubusercontent.com/brcoding/RhinoDiet/main/install.sh | sh</code></pre>
+      <p>That downloads the plugin into <code>~/.cursor/plugins/local/rhinodiet</code>. On Windows the folder is <code>%USERPROFILE%/.cursor/plugins/local/rhinodiet</code>. The copy is a real directory, not a symlink. Then reload Cursor and open a new chat. Type <code>/rhinodiet</code>. In Cursor, <code>/rhinodiet-init</code> runs that same command.</p>
+      <p><code>rhinodiet init</code> installs the console script inside a checkout. You do not need it to load the plugin. A normal venv lives at <code>.venv</code> in the project, and the script is <code>.venv/bin/rhinodiet</code>. On Windows the script is <code>.venv/Scripts/rhinodiet.exe</code>. <code>rhinodiet</code> is that console script. It is not a separate app. If the project is on a Windows drive under WSL, the venv cannot sit on that drive, so init puts it at <code>~/.venv/rhinodiet</code>. The script is then <code>~/.venv/rhinodiet/bin/rhinodiet</code>. <code>source ~/.venv/rhinodiet/bin/activate</code> makes the short name work.</p>
       <p>On Windows, Cursor starts the MCP server by running <code>hooks/mcp.py</code> with <code>py -3</code>. If <code>py</code> is not on PATH, it uses <code>python</code>. That script adds the plugin <code>src</code> directory and starts the server. It does not use WSL, and it does not use the init venv. Linux runs the same script with <code>python3</code>. Windows needs Python 3.11 or newer.</p>
       <p>Local plugin imports must be allowed. On Enterprise that stays off until an admin turns it on.</p>
     </section>

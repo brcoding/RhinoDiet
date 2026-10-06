@@ -1,5 +1,7 @@
-"""rhinodiet init creates the venv and copies the plugin on WSL."""
+"""rhinodiet init copies the plugin into Cursor and creates the venv."""
 
+import importlib.util
+import subprocess
 import sys
 from pathlib import Path
 
@@ -7,6 +9,8 @@ import pytest
 
 from rhinodiet.cli import main
 from rhinodiet.setup import DONE, on_windows_drive, plugin_dest, setup, venv_path, windows_profile
+
+from support import ROOT
 
 
 class _Done:
@@ -50,7 +54,7 @@ def test_setup_installs_dev_extra_and_copies_a_real_directory(tmp_path):
 
     text = setup(project, home=home, wsl=True, profile=profile, run=_run_ok(calls))
 
-    assert text == DONE
+    assert text == f"Copied the plugin to {dest}.\n{DONE}"
     assert calls[0][:3] == [sys.executable, "-m", "venv"]
     assert calls[0][-1] == str(project.resolve() / ".venv")
     assert calls[1][-3:] == ["install", "-e", ".[dev]"]
@@ -90,6 +94,61 @@ def test_wsl_without_a_profile_fails(tmp_path):
     project.mkdir()
     with pytest.raises(RuntimeError, match="Windows user profile"):
         setup(project, wsl=True, run=_run_ok([]))
+
+
+def test_linux_copies_into_the_home_cursor_folder(tmp_path):
+    project = tmp_path / "proj"
+    project.mkdir()
+    (project / "keep.txt").write_text("yes", encoding="utf-8")
+    home = tmp_path / "home"
+    calls = []
+
+    text = setup(project, home=home, wsl=False, host="linux", run=_run_ok(calls))
+
+    dest = plugin_dest(home)
+    assert text == f"Copied the plugin to {dest}.\n{DONE}"
+    assert (dest / "keep.txt").read_text(encoding="utf-8") == "yes"
+    assert calls[0][-1] == str(project.resolve() / ".venv")
+    assert all("wslpath" not in " ".join(cmd) for cmd in calls)
+
+
+def test_native_windows_copies_into_the_user_profile(tmp_path, monkeypatch):
+    project = tmp_path / "proj"
+    project.mkdir()
+    (project / "keep.txt").write_text("yes", encoding="utf-8")
+    profile = tmp_path / "Users" / "ada"
+    monkeypatch.setenv("USERPROFILE", str(profile))
+    calls = []
+
+    setup(project, home=tmp_path / "ignored", wsl=False, host="win32", run=_run_ok(calls))
+
+    dest = plugin_dest(profile)
+    assert (dest / "keep.txt").read_text(encoding="utf-8") == "yes"
+    assert all("wslpath" not in " ".join(cmd) for cmd in calls)
+
+
+def test_plugin_copy_survives_a_venv_failure(tmp_path):
+    project = tmp_path / "proj"
+    project.mkdir()
+    (project / "keep.txt").write_text("yes", encoding="utf-8")
+    home = tmp_path / "home"
+
+    def run(cmd, **_kwargs):
+        raise subprocess.CalledProcessError(1, cmd, stderr="pip failed")
+
+    with pytest.raises(subprocess.CalledProcessError):
+        setup(project, home=home, wsl=False, host="linux", run=run)
+
+    assert (plugin_dest(home) / "keep.txt").read_text(encoding="utf-8") == "yes"
+
+
+def test_install_script_calls_setup(monkeypatch, capsys):
+    spec = importlib.util.spec_from_file_location("rhinodiet_install", ROOT / "install.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    monkeypatch.setattr(module, "setup", lambda project: DONE)
+    assert module.main() == 0
+    assert capsys.readouterr().out == DONE
 
 
 def test_init_prints_the_reload_lines(monkeypatch, capsys, tmp_path):

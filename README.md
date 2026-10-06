@@ -2,20 +2,26 @@
 
 RhinoDiet is a Cursor plugin that cuts token use. It compresses prompts, delegates work to cheaper models, and stores project memory in a local SQLite graph. Later prompts cite node ids instead of pasting the same context again.
 
-Once Cursor lists RhinoDiet, install it from the Marketplace in Customize.
+The Cursor Marketplace is not listing this plugin. Paste one command.
 
-Until that listing exists, local setup is one command from the project directory:
+Windows, in PowerShell:
 
-```bash
-rhinodiet init
+```powershell
+irm https://raw.githubusercontent.com/brcoding/RhinoDiet/main/install.ps1 | iex
 ```
 
-Then reload Cursor and open a new chat. On a fresh clone, before the console script exists, the same setup is `PYTHONPATH=src python3 -m rhinodiet init`.
+Linux and macOS:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/brcoding/RhinoDiet/main/install.sh | sh
+```
+
+Reload Cursor and open a new chat. Type `/rhinodiet`.
 
 Type `/rhinodiet` in that chat. These four commands show up together:
 
 - `/rhinodiet` opens the walkthrough. `rhinodiet guide`
-- `/rhinodiet-init` creates the venv and copies the plugin. `rhinodiet init`
+- `/rhinodiet-init` installs the plugin. `rhinodiet init`
 - `/rhinodiet-showtests` prints saved test runs. `rhinodiet test --show`
 - `/rhinodiet-supervisor` plans and delegates. `rhinodiet run "your request"`
 
@@ -25,9 +31,9 @@ The page is `http://127.0.0.1:8813/`. The plugin reference accepts a `commands` 
 
 ## Install
 
-`rhinodiet init` creates the venv, runs `pip install -e ".[dev]"`, and on WSL copies the project into `%USERPROFILE%\.cursor\plugins\local\rhinodiet`. The copy is a real directory, not a symlink. Then reload Cursor and open a new chat. In Cursor, `/rhinodiet-init` runs the same setup.
+Paste one command. On Windows, in PowerShell, run `irm https://raw.githubusercontent.com/brcoding/RhinoDiet/main/install.ps1 | iex`. On Linux and macOS, run `curl -fsSL https://raw.githubusercontent.com/brcoding/RhinoDiet/main/install.sh | sh`. The command downloads RhinoDiet into `~/.cursor/plugins/local/rhinodiet`. On Windows that folder is `%USERPROFILE%\.cursor\plugins\local\rhinodiet`. The copy is a real directory, not a symlink. Reload Cursor and open a new chat. In Cursor, `/rhinodiet-init` runs that same command.
 
-`rhinodiet` is the console script from that install, not a separate app. A normal venv puts it at `.venv/bin/rhinodiet`. If the project is on a Windows drive under WSL (`/mnt/<letter>`), the venv cannot sit on that drive, so init uses `~/.venv/rhinodiet` and the script is `~/.venv/rhinodiet/bin/rhinodiet`. `source ~/.venv/rhinodiet/bin/activate` makes the short name work. From PowerShell the command does not exist. Run it in WSL.
+`rhinodiet init` installs the console script inside a checkout. You do not need it to load the plugin. `rhinodiet` is that console script, not a separate app. A normal venv puts it at `.venv/bin/rhinodiet`. On Windows the script is `.venv\Scripts\rhinodiet.exe`. If the project is on a Windows drive under WSL (`/mnt/<letter>`), the venv cannot sit on that drive, so init uses `~/.venv/rhinodiet` and the script is `~/.venv/rhinodiet/bin/rhinodiet`. `source ~/.venv/rhinodiet/bin/activate` makes the short name work.
 
 On Windows, Cursor starts the MCP server with Windows Python. The launcher runs `py -3` on `hooks/mcp.py`, and if `py` is not on PATH it runs `python` on that same script. The script adds the plugin `src` directory and starts the server. It does not use WSL, and it does not use the venv from `rhinodiet init`. Linux runs the same script with `python3`. Windows needs Python 3.11 or newer. The server uses the standard library, so that interpreter needs no extra packages.
 
@@ -75,7 +81,7 @@ rhinodiet guide
 
 The page is `http://127.0.0.1:8813/`. In Cursor, `/rhinodiet` serves that page. `/rhinodiet-supervisor` runs the supervisor. `/supervisor` is the same command.
 
-After init, activate the venv in WSL. The short name then runs the headless supervisor, with no API key:
+After init, activate the venv. The short name then runs the headless supervisor, with no API key:
 
 ```bash
 rhinodiet run "add a token expiry check in src/auth/session.py"
