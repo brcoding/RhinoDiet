@@ -2,7 +2,7 @@
 
 RhinoDiet is a Cursor plugin that cuts token use. It compresses prompts, delegates work to cheaper models, and stores project memory in a local SQLite graph. Later prompts cite node ids instead of pasting the same context again.
 
-The Cursor Marketplace is not listing this plugin. Paste one command. The installer asks you to pick Cursor, Claude, Codex, or all three.
+The Cursor Marketplace is not listing this plugin. Paste one command. The installer asks you to pick Cursor, Claude, ChatGPT, or all three.
 
 Windows, in PowerShell:
 
@@ -16,7 +16,7 @@ Linux and macOS:
 curl -fsSL https://raw.githubusercontent.com/brcoding/RhinoDiet/main/install.sh | sh
 ```
 
-Then open a new chat. In Cursor, type `/rhinodiet`.
+Then open a new chat. In Cursor, type `/rhinodiet`. In ChatGPT, type `@rhinodiet`.
 
 Type `/rhinodiet` in that chat. These commands show up together:
 
@@ -33,7 +33,7 @@ The page is `http://127.0.0.1:8813/`. The plugin reference accepts a `commands` 
 
 ## Install
 
-Paste one command. On Windows, in PowerShell, run `irm https://raw.githubusercontent.com/brcoding/RhinoDiet/main/install.ps1 | iex`. On Linux and macOS, run `curl -fsSL https://raw.githubusercontent.com/brcoding/RhinoDiet/main/install.sh | sh`. The menu choices are Cursor, Claude, Codex, and all three. Cursor lands in `~/.cursor/plugins/local/rhinodiet`. On Windows that folder is `%USERPROFILE%\.cursor\plugins\local\rhinodiet`. Claude lands in `~/.claude/skills/rhinodiet`. Codex lands in `~/.codex/plugins/rhinodiet` and adds a personal marketplace entry. The copy is a real directory, not a symlink. Then reload Cursor, or restart Claude Code or Codex. In Cursor, `/rhinodiet-init` runs that same command.
+Paste one command. On Windows, in PowerShell, run `irm https://raw.githubusercontent.com/brcoding/RhinoDiet/main/install.ps1 | iex`. On Linux and macOS, run `curl -fsSL https://raw.githubusercontent.com/brcoding/RhinoDiet/main/install.sh | sh`. The menu choices are Cursor, Claude, ChatGPT, and all three. Cursor lands in `~/.cursor/plugins/local/rhinodiet`. On Windows that folder is `%USERPROFILE%\.cursor\plugins\local\rhinodiet`. Claude lands in `~/.claude/skills/rhinodiet`. ChatGPT lands in `~/.codex/plugins/rhinodiet`, copies the skill to `~/.agents/skills/rhinodiet`, and enables it in `~/.codex/config.toml`. Codex uses that same copy. The copy is a real directory, not a symlink. Then reload Cursor, or restart Claude Code or ChatGPT. In Cursor, type `/rhinodiet`. In ChatGPT, type `@rhinodiet`. `/rhinodiet` is not a ChatGPT command. In Cursor, `/rhinodiet-init` runs that same command.
 
 `/rhinodiet-update` and `/rhinodiet-upgrade` download the latest from GitHub and refresh hosts that are already installed. On Windows, set `$env:RHINODIET_HOST` to `update`, then run `irm https://raw.githubusercontent.com/brcoding/RhinoDiet/main/install.ps1 | iex`. On Linux and macOS, run `curl -fsSL https://raw.githubusercontent.com/brcoding/RhinoDiet/main/install.sh | sh -s update`. `rhinodiet update` and `rhinodiet upgrade` do the same thing inside a checkout.
 

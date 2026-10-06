@@ -94,15 +94,15 @@ def page_html() -> str:
 
     <section id="install">
       <h2>Install</h2>
-      <p>Paste one command. The installer asks you to pick Cursor, Claude, Codex, or all three. On Windows, in PowerShell:</p>
+      <p>Paste one command. The installer asks you to pick Cursor, Claude, ChatGPT, or all three. On Windows, in PowerShell:</p>
       <pre><code>irm https://raw.githubusercontent.com/brcoding/RhinoDiet/main/install.ps1 | iex</code></pre>
       <p>On Linux and macOS:</p>
       <pre><code>curl -fsSL https://raw.githubusercontent.com/brcoding/RhinoDiet/main/install.sh | sh</code></pre>
       <pre><code>1  Cursor
 2  Claude
-3  Codex
+3  ChatGPT
 4  All</code></pre>
-      <p>Cursor lands in <code>~/.cursor/plugins/local/rhinodiet</code>. On Windows the folder is <code>%USERPROFILE%/.cursor/plugins/local/rhinodiet</code>. Claude lands in <code>~/.claude/skills/rhinodiet</code>. Codex lands in <code>~/.codex/plugins/rhinodiet</code> and adds a personal marketplace entry. The copy is a real directory, not a symlink. Then reload Cursor, or restart Claude Code or Codex. Type <code>/rhinodiet</code>. In Cursor, <code>/rhinodiet-init</code> runs that same command.</p>
+      <p>Cursor lands in <code>~/.cursor/plugins/local/rhinodiet</code>. On Windows the folder is <code>%USERPROFILE%/.cursor/plugins/local/rhinodiet</code>. Claude lands in <code>~/.claude/skills/rhinodiet</code>. ChatGPT lands in <code>~/.codex/plugins/rhinodiet</code> and copies a skill to <code>~/.agents/skills/rhinodiet</code>. Codex uses that same copy. The copy is a real directory, not a symlink. Then reload Cursor, or restart Claude Code or ChatGPT. In Cursor, type <code>/rhinodiet</code>. In ChatGPT, type <code>@rhinodiet</code>. <code>/rhinodiet</code> is not a ChatGPT command. In Cursor, <code>/rhinodiet-init</code> runs that same command.</p>
       <p><code>/rhinodiet-update</code> and <code>/rhinodiet-upgrade</code> download the latest from GitHub and refresh hosts that are already installed. On Windows, in PowerShell:</p>
       <pre><code>$env:RHINODIET_HOST = "update"
 irm https://raw.githubusercontent.com/brcoding/RhinoDiet/main/install.ps1 | iex</code></pre>
