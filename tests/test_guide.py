@@ -40,6 +40,11 @@ def test_guide_page_walks_through_in_order():
     assert "rhinodiet init" in visible
     assert "irm https://raw.githubusercontent.com/brcoding/RhinoDiet/main/install.ps1 | iex" in visible
     assert "curl -fsSL https://raw.githubusercontent.com/brcoding/RhinoDiet/main/install.sh | sh" in visible
+    assert "1  Cursor" in visible
+    assert "2  Claude" in visible
+    assert "3  Codex" in visible
+    assert "~/.claude/skills/rhinodiet" in visible
+    assert "~/.codex/plugins/rhinodiet" in visible
     assert "install.py" not in visible
     assert "/rhinodiet-init" in visible
     assert "/rhinodiet-showtests" in visible
