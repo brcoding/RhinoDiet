@@ -43,6 +43,11 @@ def test_guide_page_walks_through_in_order():
     assert "1  Cursor" in visible
     assert "2  Claude" in visible
     assert "3  Codex" in visible
+    assert "4  All" in visible
+    assert "/rhinodiet-update" in visible
+    assert "/rhinodiet-upgrade" in visible
+    assert "sh -s update" in visible
+    assert '$env:RHINODIET_HOST = "update"' in visible
     assert "~/.claude/skills/rhinodiet" in visible
     assert "~/.codex/plugins/rhinodiet" in visible
     assert "install.py" not in visible
@@ -111,6 +116,8 @@ def test_guide_page_walks_through_in_order():
         "rhinodiet-init.md": "name: rhinodiet-init\n",
         "rhinodiet-showtests.md": "name: rhinodiet-showtests\n",
         "rhinodiet-supervisor.md": "name: rhinodiet-supervisor\n",
+        "rhinodiet-update.md": "name: rhinodiet-update\n",
+        "rhinodiet-upgrade.md": "name: rhinodiet-upgrade\n",
     }
     for filename, name_line in grouped.items():
         text = (ROOT / "commands" / filename).read_text(encoding="utf-8")
@@ -125,6 +132,7 @@ def test_guide_page_walks_through_in_order():
     command = (ROOT / "commands" / "rhinodiet.md").read_text(encoding="utf-8")
     assert "name: rhinodiet" in command
     assert "rhinodiet guide" in command
+    assert "sh -s update" in command
     assert "rhinodiet_prepare" not in command
     supervisor = (ROOT / "commands" / "supervisor.md").read_text(encoding="utf-8")
     assert "name: supervisor" in supervisor

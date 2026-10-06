@@ -4,6 +4,7 @@ import json
 import os
 import subprocess
 import zipfile
+from pathlib import Path
 
 from support import ROOT
 
@@ -30,6 +31,7 @@ def test_readme_leads_with_one_command():
         assert "1  Cursor" in text
         assert "2  Claude" in text
         assert "3  Codex" in text
+        assert "4  All" in text
         assert "Reload Cursor." in text
 
 
@@ -128,6 +130,120 @@ def test_install_sh_registers_a_codex_marketplace_entry(tmp_path):
     rhinodiet = data["plugins"][1]
     assert rhinodiet["source"]["path"] == "./.codex/plugins/rhinodiet"
     assert proc.stdout.splitlines()[0] == "Restart Codex."
+
+
+def test_install_sh_can_place_all_three(tmp_path):
+    zip_path = tmp_path / "rhinodiet.zip"
+    _zip(zip_path, hooks=True)
+    home = tmp_path / "home"
+    proc = _run(home, zip_path, "all")
+    assert proc.returncode == 0, proc.stderr
+    cursor = home / ".cursor" / "plugins" / "local" / "rhinodiet"
+    claude = home / ".claude" / "skills" / "rhinodiet"
+    codex = home / ".codex" / "plugins" / "rhinodiet"
+    assert (cursor / "hooks" / "hooks.json").is_file()
+    assert (claude / "hooks" / "cursor-hooks.json").is_file()
+    assert not (claude / "hooks" / "hooks.json").exists()
+    assert (codex / "keep.txt").is_file()
+    market = home / ".agents" / "plugins" / "marketplace.json"
+    data = json.loads(market.read_text(encoding="utf-8"))
+    assert data["plugins"][0]["name"] == "rhinodiet"
+    assert proc.stdout.splitlines() == [
+        "Reload Cursor.",
+        "Restart Claude Code.",
+        "Restart Codex.",
+        "Type /rhinodiet.",
+    ]
+
+
+def test_install_sh_update_refreshes_only_installed_hosts(tmp_path):
+    zip_path = tmp_path / "rhinodiet.zip"
+    _zip(zip_path, hooks=True)
+    home = tmp_path / "home"
+    first = _run(home, zip_path, "cursor")
+    assert first.returncode == 0, first.stderr
+    with zipfile.ZipFile(zip_path, "w") as archive:
+        archive.writestr("RhinoDiet-main/keep.txt", "next")
+        archive.writestr("RhinoDiet-main/hooks/hooks.json", "{}\n")
+    env = os.environ.copy()
+    env["RHINODIET_HOME"] = str(home)
+    env["RHINODIET_ZIP_URL"] = zip_path.as_uri()
+    env.pop("RHINODIET_HOST", None)
+    proc = subprocess.run(
+        ["sh", str(ROOT / "install.sh"), "update"],
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=20,
+        check=False,
+    )
+    assert proc.returncode == 0, proc.stderr
+    cursor = home / ".cursor" / "plugins" / "local" / "rhinodiet"
+    assert (cursor / "keep.txt").read_text(encoding="utf-8") == "next"
+    assert (cursor / "hooks" / "hooks.json").is_file()
+    assert not (home / ".claude" / "skills" / "rhinodiet").exists()
+    assert not (home / ".codex" / "plugins" / "rhinodiet").exists()
+    assert proc.stdout.splitlines() == [
+        "Updated from GitHub.",
+        "Reload Cursor.",
+        "Type /rhinodiet.",
+    ]
+
+
+def test_install_sh_upgrade_installs_all_when_nothing_is_present(tmp_path):
+    zip_path = tmp_path / "rhinodiet.zip"
+    _zip(zip_path, hooks=True)
+    home = tmp_path / "home"
+    script = (ROOT / "install.sh").read_text(encoding="utf-8")
+    env = os.environ.copy()
+    env["RHINODIET_HOME"] = str(home)
+    env["RHINODIET_ZIP_URL"] = zip_path.as_uri()
+    env.pop("RHINODIET_HOST", None)
+    proc = subprocess.run(
+        ["sh", "-s", "upgrade"],
+        input=script,
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=20,
+        check=False,
+    )
+    assert proc.returncode == 0, proc.stderr
+    assert (home / ".cursor" / "plugins" / "local" / "rhinodiet" / "hooks" / "hooks.json").is_file()
+    assert (home / ".claude" / "skills" / "rhinodiet" / "hooks" / "cursor-hooks.json").is_file()
+    assert (home / ".codex" / "plugins" / "rhinodiet" / "keep.txt").is_file()
+    assert proc.stdout.splitlines() == [
+        "Updated from GitHub.",
+        "Reload Cursor.",
+        "Restart Claude Code.",
+        "Restart Codex.",
+        "Type /rhinodiet.",
+    ]
+
+
+def test_cli_update_and_upgrade_call_install_sh(monkeypatch):
+    from rhinodiet.cli import main
+
+    calls = []
+
+    def fake_run(cmd, env, check):
+        calls.append((cmd, env.get("RHINODIET_HOST"), check))
+
+        class Done:
+            returncode = 0
+
+        return Done()
+
+    monkeypatch.setattr("rhinodiet.cli.subprocess.run", fake_run)
+    assert main(["update"]) == 0
+    assert main(["upgrade"]) == 0
+    assert len(calls) == 2
+    for cmd, host, check in calls:
+        assert cmd[0] == "sh"
+        assert cmd[1].endswith("install.sh")
+        assert Path(cmd[1]).is_file()
+        assert host == "update"
+        assert check is False
 
 
 def test_host_manifests_are_in_the_repo():

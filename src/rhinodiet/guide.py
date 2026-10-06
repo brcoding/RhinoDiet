@@ -75,12 +75,14 @@ def page_html() -> str:
     <header id="commands">
       <p class="kicker">Commands</p>
       <h1>How to use RhinoDiet</h1>
-      <p>Type <code>/rhinodiet</code>. These four commands show up together.</p>
+      <p>Type <code>/rhinodiet</code>. These commands show up together.</p>
       <ul class="cmdlist">
         <li><code>/rhinodiet</code> opens this page. <code>rhinodiet guide</code></li>
         <li><code>/rhinodiet-init</code> installs the plugin. <code>rhinodiet init</code></li>
         <li><code>/rhinodiet-showtests</code> prints saved test runs. <code>rhinodiet test --show</code></li>
         <li><code>/rhinodiet-supervisor</code> plans and delegates. <code>rhinodiet run "your request"</code></li>
+        <li><code>/rhinodiet-update</code> downloads the latest from GitHub. <code>rhinodiet update</code></li>
+        <li><code>/rhinodiet-upgrade</code> does the same. <code>rhinodiet upgrade</code></li>
       </ul>
       <p class="muted"><code>/showtests</code> is the same as <code>/rhinodiet-showtests</code>. <code>/supervisor</code> is the same as <code>/rhinodiet-supervisor</code>.</p>
     </header>
@@ -92,14 +94,20 @@ def page_html() -> str:
 
     <section id="install">
       <h2>Install</h2>
-      <p>Paste one command. The installer asks you to pick Cursor, Claude, or Codex. On Windows, in PowerShell:</p>
+      <p>Paste one command. The installer asks you to pick Cursor, Claude, Codex, or all three. On Windows, in PowerShell:</p>
       <pre><code>irm https://raw.githubusercontent.com/brcoding/RhinoDiet/main/install.ps1 | iex</code></pre>
       <p>On Linux and macOS:</p>
       <pre><code>curl -fsSL https://raw.githubusercontent.com/brcoding/RhinoDiet/main/install.sh | sh</code></pre>
       <pre><code>1  Cursor
 2  Claude
-3  Codex</code></pre>
+3  Codex
+4  All</code></pre>
       <p>Cursor lands in <code>~/.cursor/plugins/local/rhinodiet</code>. On Windows the folder is <code>%USERPROFILE%/.cursor/plugins/local/rhinodiet</code>. Claude lands in <code>~/.claude/skills/rhinodiet</code>. Codex lands in <code>~/.codex/plugins/rhinodiet</code> and adds a personal marketplace entry. The copy is a real directory, not a symlink. Then reload Cursor, or restart Claude Code or Codex. Type <code>/rhinodiet</code>. In Cursor, <code>/rhinodiet-init</code> runs that same command.</p>
+      <p><code>/rhinodiet-update</code> and <code>/rhinodiet-upgrade</code> download the latest from GitHub and refresh hosts that are already installed. On Windows, in PowerShell:</p>
+      <pre><code>$env:RHINODIET_HOST = "update"
+irm https://raw.githubusercontent.com/brcoding/RhinoDiet/main/install.ps1 | iex</code></pre>
+      <p>On Linux and macOS:</p>
+      <pre><code>curl -fsSL https://raw.githubusercontent.com/brcoding/RhinoDiet/main/install.sh | sh -s update</code></pre>
       <p><code>rhinodiet init</code> installs the console script inside a checkout. You do not need it to load the plugin. A normal venv lives at <code>.venv</code> in the project, and the script is <code>.venv/bin/rhinodiet</code>. On Windows the script is <code>.venv/Scripts/rhinodiet.exe</code>. <code>rhinodiet</code> is that console script. It is not a separate app. If the project is on a Windows drive under WSL, the venv cannot sit on that drive, so init puts it at <code>~/.venv/rhinodiet</code>. The script is then <code>~/.venv/rhinodiet/bin/rhinodiet</code>. <code>source ~/.venv/rhinodiet/bin/activate</code> makes the short name work.</p>
       <p>On Windows, Cursor starts the MCP server by running <code>hooks/mcp.py</code> with <code>py -3</code>. If <code>py</code> is not on PATH, it uses <code>python</code>. That script adds the plugin <code>src</code> directory and starts the server. It does not use WSL, and it does not use the init venv. Linux runs the same script with <code>python3</code>. Windows needs Python 3.11 or newer.</p>
       <p>Local plugin imports must be allowed. On Enterprise that stays off until an admin turns it on.</p>

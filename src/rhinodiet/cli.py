@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -14,6 +15,17 @@ from rhinodiet.guide import GUIDE_PORT, serve as serve_guide, start_guide
 from rhinodiet.supervisor import open_supervisor
 from rhinodiet.testhistory import PAGE_PORT, serve, show_tests
 from rhinodiet.tokens import format_report, record_transcript
+
+
+def _install_script() -> Path | None:
+    for parent in Path(__file__).resolve().parents:
+        candidate = parent / "install.sh"
+        if candidate.is_file():
+            return candidate
+    cwd_script = Path.cwd() / "install.sh"
+    if cwd_script.is_file():
+        return cwd_script
+    return None
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -47,6 +59,8 @@ def main(argv: list[str] | None = None) -> int:
     guide.add_argument("--port", type=int, default=GUIDE_PORT)
 
     sub.add_parser("init", help="Create the venv, install the package, and copy the plugin")
+    sub.add_parser("update", help="Download the latest plugin from GitHub")
+    sub.add_parser("upgrade", help="Download the latest plugin from GitHub")
 
     tokens = sub.add_parser("tokens", help="Record reconstructed transcript totals")
     tokens_sub = tokens.add_subparsers(dest="tokens_cmd", required=True)
@@ -79,6 +93,18 @@ def main(argv: list[str] | None = None) -> int:
             print(str(exc), file=sys.stderr)
             return 1
         return 0
+    if args.cmd in {"update", "upgrade"}:
+        script = _install_script()
+        if script is None:
+            print(
+                "install.sh was not found. Run curl -fsSL https://raw.githubusercontent.com/brcoding/RhinoDiet/main/install.sh | sh -s update",
+                file=sys.stderr,
+            )
+            return 1
+        env = os.environ.copy()
+        env["RHINODIET_HOST"] = "update"
+        completed = subprocess.run(["sh", str(script)], env=env, check=False)
+        return completed.returncode
     if args.cmd == "guide":
         if args.serve:
             from rhinodiet.testhistory import port_open
