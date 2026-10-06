@@ -1,4 +1,4 @@
-"""Create the venv, install the package, and copy the plugin on WSL."""
+"""Create the venv, install the package, and copy the plugin into Cursor."""
 
 from __future__ import annotations
 
@@ -109,21 +109,41 @@ def create_venv(project: Path, venv: Path, run=None) -> None:
     )
 
 
+def cursor_user_dir(
+    *,
+    home: Path | None = None,
+    wsl: bool | None = None,
+    profile: Path | None = None,
+    host: str | None = None,
+    run=None,
+) -> Path:
+    use_wsl = on_wsl() if wsl is None else wsl
+    if use_wsl:
+        found = profile if profile is not None else windows_profile(run)
+        if found is None:
+            raise RuntimeError("Could not find the Windows user profile.")
+        return found
+    if (host or sys.platform) == "win32":
+        raw = os.environ.get("USERPROFILE", "").strip().strip('"')
+        if not raw or "%" in raw:
+            raise RuntimeError("Could not find the Windows user profile.")
+        return Path(raw)
+    return home or Path.home()
+
+
 def setup(
     project: Path,
     *,
     home: Path | None = None,
     wsl: bool | None = None,
     profile: Path | None = None,
+    host: str | None = None,
     run=None,
 ) -> str:
     project = project.resolve()
-    venv = venv_path(project, home)
-    create_venv(project, venv, run=run)
-    use_wsl = on_wsl() if wsl is None else wsl
-    if use_wsl:
-        found = profile if profile is not None else windows_profile(run)
-        if found is None:
-            raise RuntimeError("Could not find the Windows user profile.")
-        copy_plugin(project, plugin_dest(found))
-    return DONE
+    dest = plugin_dest(
+        cursor_user_dir(home=home, wsl=wsl, profile=profile, host=host, run=run)
+    )
+    copy_plugin(project, dest)
+    create_venv(project, venv_path(project, home), run=run)
+    return f"Copied the plugin to {dest}.\n{DONE}"

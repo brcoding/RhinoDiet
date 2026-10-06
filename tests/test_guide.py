@@ -38,7 +38,8 @@ def test_guide_page_walks_through_in_order():
     assert "rhinodiet test --show" in top
     assert 'rhinodiet run "your request"' in top
     assert "rhinodiet init" in visible
-    assert "PYTHONPATH=src python3 -m rhinodiet init" in visible
+    assert "py -3 install.py" in visible
+    assert "python3 install.py" in visible
     assert "/rhinodiet-init" in visible
     assert "/rhinodiet-showtests" in visible
     assert "/rhinodiet-supervisor" in visible
@@ -51,7 +52,8 @@ def test_guide_page_walks_through_in_order():
     assert ".venv/bin/rhinodiet" in visible
     assert "~/.venv/rhinodiet/bin/rhinodiet" in visible
     assert "source ~/.venv/rhinodiet/bin/activate" in visible
-    assert "From PowerShell the command does not exist." in visible
+    assert "python install.py" in visible
+    assert ".cursor/plugins/local/rhinodiet" in visible
     assert "hooks/mcp.py" in visible
     assert "py -3" in visible
     assert "does not use WSL" in visible
@@ -104,7 +106,8 @@ def test_guide_page_walks_through_in_order():
         assert name_line in text
         assert "description: RhinoDiet:" in text
     init_cmd = (ROOT / "commands" / "rhinodiet-init.md").read_text(encoding="utf-8")
-    assert "PYTHONPATH=src python3 -m rhinodiet init" in init_cmd
+    assert "py -3 install.py" in init_cmd
+    assert "python3 install.py" in init_cmd
     for alias in ("showtests.md", "supervisor.md"):
         alias_text = (ROOT / "commands" / alias).read_text(encoding="utf-8")
         assert "description: RhinoDiet:" in alias_text
