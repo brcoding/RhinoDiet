@@ -1,0 +1,7 @@
+{
+  "name": "rhinodiet",
+  "version": "0.1.0",
+  "description": "Cut token use. Compress prompts, delegate to cheaper models, and cite a local graph instead of pasting history.",
+  "skills": "./skills/",
+  "mcpServers": "./mcp.json"
+}

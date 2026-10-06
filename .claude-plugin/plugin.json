@@ -1,0 +1,11 @@
+{
+  "name": "rhinodiet",
+  "displayName": "RhinoDiet",
+  "description": "Cut token use. Compress prompts, delegate to cheaper models, and cite a local graph instead of pasting history.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Barry Coding"
+  },
+  "skills": "./skills/",
+  "mcpServers": "./mcp.json"
+}

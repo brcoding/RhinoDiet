@@ -2,7 +2,7 @@
 
 RhinoDiet is a Cursor plugin that cuts token use. It compresses prompts, delegates work to cheaper models, and stores project memory in a local SQLite graph. Later prompts cite node ids instead of pasting the same context again.
 
-The Cursor Marketplace is not listing this plugin. Paste one command.
+The Cursor Marketplace is not listing this plugin. Paste one command. The installer asks you to pick Cursor, Claude, Codex, or all three.
 
 Windows, in PowerShell:
 
@@ -16,14 +16,16 @@ Linux and macOS:
 curl -fsSL https://raw.githubusercontent.com/brcoding/RhinoDiet/main/install.sh | sh
 ```
 
-Reload Cursor and open a new chat. Type `/rhinodiet`.
+Then open a new chat. In Cursor, type `/rhinodiet`.
 
-Type `/rhinodiet` in that chat. These four commands show up together:
+Type `/rhinodiet` in that chat. These commands show up together:
 
 - `/rhinodiet` opens the walkthrough. `rhinodiet guide`
 - `/rhinodiet-init` installs the plugin. `rhinodiet init`
 - `/rhinodiet-showtests` prints saved test runs. `rhinodiet test --show`
 - `/rhinodiet-supervisor` plans and delegates. `rhinodiet run "your request"`
+- `/rhinodiet-update` downloads the latest from GitHub. `rhinodiet update`
+- `/rhinodiet-upgrade` does the same. `rhinodiet upgrade`
 
 `/showtests` is the same as `/rhinodiet-showtests`. `/supervisor` is the same as `/rhinodiet-supervisor`.
 
@@ -31,7 +33,9 @@ The page is `http://127.0.0.1:8813/`. The plugin reference accepts a `commands` 
 
 ## Install
 
-Paste one command. On Windows, in PowerShell, run `irm https://raw.githubusercontent.com/brcoding/RhinoDiet/main/install.ps1 | iex`. On Linux and macOS, run `curl -fsSL https://raw.githubusercontent.com/brcoding/RhinoDiet/main/install.sh | sh`. The command downloads RhinoDiet into `~/.cursor/plugins/local/rhinodiet`. On Windows that folder is `%USERPROFILE%\.cursor\plugins\local\rhinodiet`. The copy is a real directory, not a symlink. Reload Cursor and open a new chat. In Cursor, `/rhinodiet-init` runs that same command.
+Paste one command. On Windows, in PowerShell, run `irm https://raw.githubusercontent.com/brcoding/RhinoDiet/main/install.ps1 | iex`. On Linux and macOS, run `curl -fsSL https://raw.githubusercontent.com/brcoding/RhinoDiet/main/install.sh | sh`. The menu choices are Cursor, Claude, Codex, and all three. Cursor lands in `~/.cursor/plugins/local/rhinodiet`. On Windows that folder is `%USERPROFILE%\.cursor\plugins\local\rhinodiet`. Claude lands in `~/.claude/skills/rhinodiet`. Codex lands in `~/.codex/plugins/rhinodiet` and adds a personal marketplace entry. The copy is a real directory, not a symlink. Then reload Cursor, or restart Claude Code or Codex. In Cursor, `/rhinodiet-init` runs that same command.
+
+`/rhinodiet-update` and `/rhinodiet-upgrade` download the latest from GitHub and refresh hosts that are already installed. On Windows, set `$env:RHINODIET_HOST` to `update`, then run `irm https://raw.githubusercontent.com/brcoding/RhinoDiet/main/install.ps1 | iex`. On Linux and macOS, run `curl -fsSL https://raw.githubusercontent.com/brcoding/RhinoDiet/main/install.sh | sh -s update`. `rhinodiet update` and `rhinodiet upgrade` do the same thing inside a checkout.
 
 `rhinodiet init` installs the console script inside a checkout. You do not need it to load the plugin. `rhinodiet` is that console script, not a separate app. A normal venv puts it at `.venv/bin/rhinodiet`. On Windows the script is `.venv\Scripts\rhinodiet.exe`. If the project is on a Windows drive under WSL (`/mnt/<letter>`), the venv cannot sit on that drive, so init uses `~/.venv/rhinodiet` and the script is `~/.venv/rhinodiet/bin/rhinodiet`. `source ~/.venv/rhinodiet/bin/activate` makes the short name work.
 
