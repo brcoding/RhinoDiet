@@ -70,6 +70,18 @@ _TECH = re.compile(
     r"\b(?:api|function|module|token|config|handler|endpoint|class|middleware|session)\b"
     r"|[/]|[A-Z][a-z0-9]+[A-Z]",
 )
+_PROJECT_MANAGER = re.compile(
+    r"\bproject[- ]manager\b|\bmulti[- ]domain\b|\bownership\b|\brouting\b|\bwho owns\b|\bcross[- ]system\b|\bhandoff\b",
+    re.I,
+)
+_DOMAIN_SPECIALISTS = (
+    ("ability", re.compile(r"\babilit(?:y|ies)\b|\bweapon(?:s)?\b|\bloadout\b|\bcell skill", re.I)),
+    ("assembly", re.compile(r"\bassembly\b|\bshared combat\b|\bintegration glue\b", re.I)),
+    ("enemy", re.compile(r"\benem(?:y|ies)\b|\benemy pack\b|\bai behavior", re.I)),
+    ("environment", re.compile(r"\benvironment\b|\bterrain\b|\blandmark\b|\bworld dressing\b|\bmap generation\b", re.I)),
+    ("player", re.compile(r"\bplayer (?:stats|class|progression|controller)\b|\bclass select\b|\blymph\b", re.I)),
+    ("qa", re.compile(r"\bqa\b|\bbot run\b|\bvalidation tool\b|\btest report\b", re.I)),
+)
 
 
 class ModelClient:
@@ -162,8 +174,12 @@ def plan(request: str) -> list[str]:
         tasks.append("creative")
     if wants_tester(text):
         tasks.append("tester")
-    elif wants_godot(text):
+    elif wants_project_manager(text):
+        tasks.append("project-manager")
+    elif wants_godot(text) and not wants_specialist(text):
         tasks.append("godot")
+    elif specialist := wants_specialist(text):
+        tasks.append(specialist)
     elif wants_dev(text):
         tasks.append("dev")
     elif _REVIEW.search(text) and not docs:
@@ -173,6 +189,19 @@ def plan(request: str) -> list[str]:
     if wants_release(text):
         tasks.append("release")
     return tasks
+
+
+def wants_project_manager(text: str) -> bool:
+    return bool(_PROJECT_MANAGER.search(text))
+
+
+def wants_specialist(text: str) -> str | None:
+    hits = [name for name, pattern in _DOMAIN_SPECIALISTS if pattern.search(text)]
+    if len(hits) == 1:
+        return hits[0]
+    if len(hits) > 1:
+        return "project-manager"
+    return None
 
 
 def wants_docs(text: str) -> bool:
@@ -325,6 +354,17 @@ class Supervisor:
                 notes.append(outcome.text)
                 trace.append("tester")
                 accepted = accepted and outcome.passed
+            elif agent in {
+                "project-manager",
+                "ability",
+                "assembly",
+                "enemy",
+                "environment",
+                "player",
+                "qa",
+            }:
+                notes.append(f"Queued {agent} on the worker tier with a path-scoped brief.")
+                trace.append(agent)
         memory_id = ""
         if trace:
             memory_id = self._remember(trace, cites, docs_result, notes)

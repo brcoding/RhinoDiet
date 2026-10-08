@@ -121,9 +121,11 @@ irm https://raw.githubusercontent.com/brcoding/RhinoDiet/main/install.ps1 | iex<
 
     <section id="workers">
       <h2>Supervisor and the cheaper workers</h2>
-      <p>The supervisor stays on the parent model, <code>inherit</code>. Dev, reviewer, creative, docs, release, Godot, and tester use the cheaper worker tier, <code>composer-2.5[fast=true]</code>, from <code>rhinodiet.config.json</code>.</p>
+      <p>The supervisor stays on the parent model, <code>inherit</code>. Project manager, domain specialists, dev, reviewer, creative, docs, release, Godot, and tester use the cheaper worker tier, <code>composer-2.5[fast=true]</code>, from <code>rhinodiet.config.json</code>.</p>
       <ul>
         <li><code>/rhinodiet-supervisor</code> plans, delegates, reviews, and sends work back. <code>/supervisor</code> is the same command.</li>
+        <li><code>/project-manager</code> routes multi-domain work with Allowed-path handoffs. It does not invent ownership.</li>
+        <li><code>/ability</code>, <code>/assembly</code>, <code>/enemy</code>, <code>/environment</code>, <code>/player</code>, and <code>/qa</code> stay inside path-scoped ownership from the project ownership doc.</li>
         <li><code>/dev</code> writes simple code and straightforward unit tests. Prefer a library that already exists.</li>
         <li><code>/reviewer</code> reviews the change. Findings go back to the worker that wrote it. Godot reviews use a short checklist.</li>
         <li><code>/creative</code> makes images, textures, or video. Read style from memory first.</li>
@@ -133,7 +135,7 @@ irm https://raw.githubusercontent.com/brcoding/RhinoDiet/main/install.ps1 | iex<
         <li><code>/tester</code> plays a registered game.</li>
       </ul>
       <div class="rule">
-        <p>The tester tries to beat the level. A few seconds of survival is not a pass.</p>
+        <p>Plan for token reduction. Prefer path-scoped handoffs over repo tours. The tester tries to beat the level. A few seconds of survival is not a pass.</p>
       </div>
     </section>
 

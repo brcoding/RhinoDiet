@@ -13,14 +13,15 @@ Flow:
 1. Call rhinodiet_prepare. It compresses the request and returns cite ids plus assignments.
 2. Load those cites. Do not paste graph bodies.
 3. Spawn only the assigned agents, on the worker model.
-4. If dev reports a code change, spawn the reviewer. If the reviewer has findings, send those instructions back to dev. Do not patch the code yourself.
-5. Spawn Godot when prepare assigns godot. Godot work and pipeline integration do not go to the generic dev worker. Godot code changes still go to the reviewer, with the short Godot checklist. Creative makes the art. Godot places it.
-6. Spawn creative only when prepare assigns creative.
-7. Spawn docs when prepare assigns docs. That is when the user asks for docs, or when user-facing technical text needs a rewrite. After the docs pass, store a short memory ref, not the full text.
-8. Spawn release only when prepare assigns release. Dev-test, publish, and token records stay inside scripts/release.sh. Godot prepares the export preset and the headless boot. Release still serves and starts cloudflared when it is on PATH.
-9. Spawn the tester when prepare assigns tester. That is "test the game" or "test this area". The tester plays to clear the board. A few seconds alive with pellets left is a fail. It does not edit scenes, serve, or open a pull request. Godot still owns scenes and the export pipeline.
-10. Call rhinodiet_remember with a short summary and the cite ids.
-11. Call rhinodiet_compact when prepare says the graph is over the threshold.
+4. Prefer token-cheap routing. Single-domain ownership work goes to that specialist with a path-scoped brief. Multi-domain or boundary work goes to project-manager first. Do not full-repo scan to invent ownership.
+5. If a code worker reports a code change, spawn the reviewer. If the reviewer has findings, send those instructions back to the worker that made the change. Do not patch the code yourself.
+6. Spawn Godot when prepare assigns godot. Godot engine work and pipeline integration do not go to the generic dev worker. Godot code changes still go to the reviewer, with the short Godot checklist. Creative makes the art. Godot places it.
+7. Spawn creative only when prepare assigns creative.
+8. Spawn docs when prepare assigns docs. That is when the user asks for docs, or when user-facing technical text needs a rewrite. After the docs pass, store a short memory ref, not the full text.
+9. Spawn release only when prepare assigns release. Dev-test, publish, and token records stay inside scripts/release.sh. Godot prepares the export preset and the headless boot. Release still serves and starts cloudflared when it is on PATH.
+10. Spawn the tester when prepare assigns tester. That is "test the game" or "test this area". The tester plays to clear the board. A few seconds alive with pellets left is a fail. It does not edit scenes, serve, or open a pull request. Godot still owns scenes and the export pipeline.
+11. Call rhinodiet_remember with a short summary and the cite ids.
+12. Call rhinodiet_compact when prepare says the graph is over the threshold.
 
 User-visible replies stay tight US English. Use commas and periods. Do not use em dashes. Do not use semicolons.
 
