@@ -134,7 +134,7 @@ python3 hooks/mcp.py
 | Role | Tier | Default model |
 | --- | --- | --- |
 | Supervisor | supervisor | inherit |
-| Dev, reviewer, creative, Godot, docs, release, tester | worker | composer-2.5[fast=true] |
+| Project manager, domain specialists, dev, reviewer, creative, Godot, docs, release, tester | worker | composer-2.5[fast=true] |
 
 Workers default to the cheaper worker tier. The supervisor model is `inherit`, so it stays on the parent model. No API key is required. If `RHINODIET_MODEL_URL` is unset, dev, Godot, and reviewer use an offline client that records the task and does not invent product code. Creative uses a local SVG or storyboard unless `RHINODIET_CREATIVE_URL` is set. Docs rewrites text locally so facts stay exact without a model call. Godot stores the engine version and conventions as short refs, and it writes the Web export preset the release script already uses.
 
@@ -155,6 +155,13 @@ Invoke an agent with `/name` in Cursor chat, or ask the supervisor to delegate. 
 | Agent | Invoke | Job |
 | --- | --- | --- |
 | Supervisor | `/rhinodiet-supervisor` | Plan, delegate, review, send work back. Does not write product code. `/supervisor` is the same command. |
+| Project manager | `/project-manager` | Multi-domain ownership routing with Allowed-path handoffs. Does not invent ownership. |
+| Ability | `/ability` | Path-scoped ability and loadout work from the project ownership doc. |
+| Assembly | `/assembly` | Shared systems and cross-domain glue. Exact Allowed paths only. |
+| Enemy | `/enemy` | Path-scoped enemy, pack, and AI work. |
+| Environment | `/environment` | Path-scoped maps, terrain, landmarks, and world dressing. |
+| Player | `/player` | Path-scoped player identity, class select, and progression. |
+| QA | `/qa` | Path-scoped bots, validation tools, and test reports. |
 | Dev | `/dev` | Simple code with straightforward unit tests. Prefer existing libraries. |
 | Reviewer | `/reviewer` | CodeRabbit-style review. Findings are instructions for the worker that made the change. Godot reviews use a short checklist. |
 | Creative | `/creative` | Images, textures, or video. Read style from memory first. |
@@ -165,14 +172,16 @@ Invoke an agent with `/name` in Cursor chat, or ask the supervisor to delegate. 
 
 The docs worker runs when the user asks for docs, or when user-facing technical text needs a rewrite. A docs pass stores a short memory ref, not the full text.
 
+Smart planning keeps tokens low. Single-domain ownership work goes straight to that specialist. Multi-domain work goes through the project manager. Workers load only the brief and named Allowed paths. They do not full-repo scan to invent ownership.
+
 Supervisor flow:
 
 1. Compress the incoming request.
 2. Load graph references, not full history.
-3. Plan and assign tasks to the cheapest fitting agent.
+3. Plan and assign tasks to the cheapest fitting agent. Prefer path-scoped specialists and project-manager routing over repo tours.
 4. Dev work returns to the reviewer when code changed. Godot work and pipeline integration go to the Godot worker, not the generic dev worker. Godot code changes return to the reviewer with the short checklist.
 5. The supervisor accepts or sends the review back to the worker that made the change. It does not patch the code.
-6. Creative, Godot, docs, release, and the tester run only when the request needs them. Creative makes the art. Godot places it. The tester plays. Release still serves, starts cloudflared when it is on PATH, commits, and opens pull requests.
+6. Creative, Godot, docs, release, specialists, project-manager, and the tester run only when the request needs them. Creative makes the art. Godot places it. The tester plays. Release still serves, starts cloudflared when it is on PATH, commits, and opens pull requests.
 7. Write a short memory update of refs plus a compact summary.
 8. Compact when over the size threshold.
 

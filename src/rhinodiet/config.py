@@ -7,7 +7,22 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 
-WORKER_AGENTS = ("dev", "reviewer", "creative", "godot", "release", "docs", "tester")
+WORKER_AGENTS = (
+    "project-manager",
+    "ability",
+    "assembly",
+    "enemy",
+    "environment",
+    "player",
+    "qa",
+    "dev",
+    "reviewer",
+    "creative",
+    "godot",
+    "release",
+    "docs",
+    "tester",
+)
 
 
 @dataclass(frozen=True)

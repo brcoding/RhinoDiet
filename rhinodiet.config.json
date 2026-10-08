@@ -23,6 +23,13 @@
   },
   "agents": {
     "supervisor": "supervisor",
+    "project-manager": "worker",
+    "ability": "worker",
+    "assembly": "worker",
+    "enemy": "worker",
+    "environment": "worker",
+    "player": "worker",
+    "qa": "worker",
     "dev": "worker",
     "reviewer": "worker",
     "creative": "worker",
